@@ -10,7 +10,7 @@ sesso = st.text_input("Scrivi il tuo sesso. Se non vuoi scriverlo scrivi indefin
         
 if st.button ("salva"):
         dati = pd.DataFrame([[nome, eta, scuola, sesso]],
-                            colnums=["nome", "età", "scuola", "Sesso"])
+                            columns=["nome", "età", "scuola", "Sesso"])
         csv = dati.to_csv(index=False).encode('utf-8')
         st.download_button(
             label="Scarica il tuo file",
@@ -19,6 +19,7 @@ if st.button ("salva"):
             mine='text/csv'
             )
         st.success("Puoi scaricare i tuoi dati sul tuo computer!")
+
 
 
 
