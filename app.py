@@ -7,7 +7,7 @@ if 'dati' not in st.session_state:
 nome = st.text_input("Nome")
 eta = st.text_input("Età")
 scuola = st.text_input("Scuola")
-sesso = st.radio("Sesso", ["Maschio", "Femmina"])
+sesso = st.radio("Sesso", ["Maschio", "Femmina", "Nessuno dei due"])
 
 if st.button("Aggiungi alla tabella"):
     if nome and eta and scuola and sesso:
@@ -23,3 +23,4 @@ st.dataframe(st.session_state.dati)
 if st.button("Mostra dati copiabili"):
     st.code(st.session_state.dati.to_csv(index=False, sep="\t"), language='text')
     st.info("Seleziona il testo sopra per copiarlo e incollarlo dove vuoi!")
+
