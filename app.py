@@ -10,7 +10,7 @@ if email:
     nome_file = email.replace("@","_").replace(".","_") + ".csv"
 
     nome = st.text_input("Come ti chiami?")
-    età = st.text_input("Quanti anni hai?")
+    eta = st.text_input("Quanti anni hai?")
     scuola = st.text_input("Che scuola frequenti?")
 
     if st.button("Sono di sesso maschile"):
@@ -23,10 +23,11 @@ if email:
     if st.button ("salva"):
         with open(nome_file, "a", newline="") as f:
             writer= csv.writer(f)
-            writer.writerow([nome, età, scuola, sesso])
+            writer.writerow([nome, eta, scuola, sesso])
             st.success("Dati salvati")
     if os.path.exsists(nome_file):
         st.write("I tuoi dati salvati:")
         with open(nome_file, "r") as f:
             st.text(f.read())
+
 
