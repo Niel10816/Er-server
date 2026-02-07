@@ -14,7 +14,7 @@ if email:
     scuola = st.text_input("Che scuola frequenti?")
 
     sesso = None
-    col1, col2, col3 = st.colnumns(3)
+    col1, col2, col3 = st.columns(3)
     if col1.button("Sono di sesso maschile"):
         sesso = ("Maschio")
     if col2.button("Sono di sesso femminile"):
@@ -35,6 +35,7 @@ if email:
         st.write("I tuoi dati salvati:")
         with open(nome_file, "r") as f:
             st.text(f.read())
+
 
 
 
