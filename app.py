@@ -13,21 +13,28 @@ if email:
     eta = st.text_input("Quanti anni hai?")
     scuola = st.text_input("Che scuola frequenti?")
 
-    if st.button("Sono di sesso maschile"):
+    sesso = None
+    col1, col2, col3 = st.colnumns(3)
+    if col1.button("Sono di sesso maschile"):
         sesso = ("Maschio")
-    if st.button("Sono di sesso femminile"):
+    if col2.button("Sono di sesso femminile"):
         sesso = ("Femmina")
-    if st.button("Preferisco non rispondere"):
+    if col3.button("Preferisco non rispondere"):
         sesso = ("Indefinito")
         
     if st.button ("salva"):
-        with open(nome_file, "a", newline="") as f:
-            writer= csv.writer(f)
-            writer.writerow([nome, eta, scuola, sesso])
-            st.success("Dati salvati")
+        if sesso is None:
+            st.error("Seleziona prima il nome")
+        else:
+            with open(nome_file, "a", newline="") as f:
+                writer= csv.writer(f)
+                writer.writerow([nome, eta, scuola, sesso])
+                st.success("Dati salvati")
+        
     if os.path.exsists(nome_file):
         st.write("I tuoi dati salvati:")
         with open(nome_file, "r") as f:
             st.text(f.read())
+
 
 
