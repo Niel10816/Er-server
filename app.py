@@ -1,17 +1,14 @@
-import streamlit as st
+zimport streamlit as st
 import pandas as pd
 
 st.title("Er software")
 nome = st.text_input("Come ti chiami?")
 eta = st.text_input("Quanti anni hai?")
 scuola = st.text_input("Che scuola frequenti?")
+sesso = st.text_input("Scrivi il tuo sesso. Se non vuoi scriverlo "scrivi" indefinito")
 
-sesso = st.radio("Sesso", [Maschio, Femmina, Indefinito])
         
 if st.button ("salva"):
-    if not sesso:
-        st.error("Seleziona prima il nome")
-    else:
         dati = pd.DataFrame([[nome, eta, scuola, sesso]],
                             colnums=["nome", "età", "scuola", "Sesso"])
         csv = dati.to_csv(index=False).encode('utf-8')
