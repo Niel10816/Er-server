@@ -1,13 +1,7 @@
 import streamlit as st
-import csv
-import os
+import pandas as pd
 
 st.title("Er software")
-
-email = st.text_input("Inserisci la tua email")
-
-if email:
-    nome_file = email.replace("@","_").replace(".","_") + ".csv"
 
     nome = st.text_input("Come ti chiami?")
     eta = st.text_input("Quanti anni hai?")
@@ -26,16 +20,13 @@ if email:
         if sesso is None:
             st.error("Seleziona prima il nome")
         else:
-            with open(nome_file, "a", newline="") as f:
-                writer= csv.writer(f)
-                writer.writerow([nome, eta, scuola, sesso])
-                st.success("Dati salvati")
-        
-    if os.path.exsists(nome_file):
-        st.write("I tuoi dati salvati:")
-        with open(nome_file, "r") as f:
-            st.text(f.read())
-
-
-
-
+            dati = pd.DataFrame([[nome, eta, scuola, sesso]],
+                               colnums=["nome", "età", "scuola", "Sesso"])
+            csv = dati.to_csv(index=False).encode('utf-8')
+            st.download_button(
+                label="Scarica il tuo file",
+            data=csv,
+            fle_name='i_miei_dati.csv'
+            mine='text/csv'
+            )
+            st.success("Puoi scaricare i tuoi dati sul tuo computer!")
