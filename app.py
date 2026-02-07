@@ -1,4 +1,4 @@
-zimport streamlit as st
+import streamlit as st
 import pandas as pd
 
 st.title("Er software")
@@ -19,6 +19,7 @@ if st.button ("salva"):
             mine='text/csv'
             )
         st.success("Puoi scaricare i tuoi dati sul tuo computer!")
+
 
 
 
