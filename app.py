@@ -5,7 +5,7 @@ st.title("Er software")
 nome = st.text_input("Come ti chiami?")
 eta = st.text_input("Quanti anni hai?")
 scuola = st.text_input("Che scuola frequenti?")
-sesso = st.text_input("Scrivi il tuo sesso. Se non vuoi scriverlo "scrivi" indefinito")
+sesso = st.text_input("Scrivi il tuo sesso. Se non vuoi scriverlo scrivi indefinito")
 
         
 if st.button ("salva"):
@@ -19,6 +19,7 @@ if st.button ("salva"):
             mine='text/csv'
             )
         st.success("Puoi scaricare i tuoi dati sul tuo computer!")
+
 
 
 
