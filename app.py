@@ -25,9 +25,10 @@ if st.button ("salva"):
         st.download_button(
             label="Scarica il tuo file",
             data=csv,
-            fle_name='i_miei_dati.csv'
+            fle_name='i_miei_dati.csv',
             mine='text/csv'
             )
         st.success("Puoi scaricare i tuoi dati sul tuo computer!")
+
 
 
