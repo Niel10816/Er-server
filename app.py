@@ -1,28 +1,25 @@
 import streamlit as st
 import pandas as pd
 
-st.title("Er software")
-nome = st.text_input("Come ti chiami?")
-eta = st.text_input("Quanti anni hai?")
-scuola = st.text_input("Che scuola frequenti?")
-sesso = st.text_input("Scrivi il tuo sesso. Se non vuoi scriverlo scrivi indefinito")
+if 'dati' not in st.session_state:
+    st.session_state.dati = pd.DataFrame(columns=["Nome", "Età", "Scuola", "Sesso"])
 
-        
-if st.button ("salva"):
-        dati = pd.DataFrame([[nome, eta, scuola, sesso]],
-                            columns=["nome", "età", "scuola", "Sesso"])
-        csv = dati.to_csv(index=False).encode('utf-8')
-        st.download_button(
-            label="Scarica il tuo file",
-            data=csv,
-            fle_name='i_miei_dati.csv',
-            mine='text/csv'
-            )
-        st.success("Puoi scaricare i tuoi dati sul tuo computer!")
+nome = st.text_input("Nome")
+eta = st.text_input("Età")
+scuola = st.text_input("Scuola")
+sesso = st.radio("Sesso", ["Maschio", "Femmina"])
 
+if st.button("Aggiungi alla tabella"):
+    if nome and eta and scuola and sesso:
+        nuova_riga = pd.DataFrame([[nome, eta, scuola, sesso]],
+                                  columns=["Nome", "Età", "Scuola", "Sesso"])
+        st.session_state.dati = pd.concat([st.session_state.dati, nuova_riga],
+                                          ignore_index=True)
+    else:
+        st.error("Compila tutti i campi!")
 
+st.dataframe(st.session_state.dati)
 
-
-
-
-
+if st.button("Mostra dati copiabili"):
+    st.code(st.session_state.dati.to_csv(index=False, sep="\t"), language='text')
+    st.info("Seleziona il testo sopra per copiarlo e incollarlo dove vuoi!")
