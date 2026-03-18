@@ -23,7 +23,7 @@ if st.button("Salva il profilo"):
     supabase.table("utenti").insert({
         "nome": nome,
         "genere": genere,
-        "ruolo": ruolo
+        "ruolo": ruolo,
         "audio_url": audio_url
     }).execute()
 
