@@ -6,13 +6,25 @@ key = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imhj
 supabase = create_client(url,key)
 st.title("BeginnerCollab")
 nome = st.text_input("Email *questa email sarà visibile a tutti gli utenti della piattaforma")
-ruolo = st.selectbox("Chi sei?",["produttore", "cantante", "entrambi"])
+ruolo = st.selectbox("Chi sei?",["produttore", "cantante"])
 genere = st.selectbox("genere", ["rock", "rap/trap", "pop", "classico", "tecno/elettro", "jazz"])
+audio_file = st.file_uploader("Carica qui la tua traccia audiomp3", type=["mp3"])
 if st.button("Salva il profilo"):
+    audio_url = None
+    if audio_url is None: 
+        file_bytes = audio_file.read()
+        supabase.storage.from_("audio").upload(
+        f"{nome}.mp3",
+        file_bytes
+    )
+
+    audio_url = supabase.storage.from_("audio").get_public_url(f"{nome}.mp3")
+
     supabase.table("utenti").insert({
         "nome": nome,
         "genere": genere,
         "ruolo": ruolo
+        "audio_url": audio_url
     }).execute()
 
     st.success("Profilo salvato!")
@@ -48,9 +60,12 @@ if data and len(data) > 1:
 
     st.subheader("Collaboratori suggeriti")
 
-    for u, score in risultati:
-        if u["nome"] != current_user["nome"]:
-            st.write(f"{u['nome']} → compatibilità: {score}%")
+    for u in response.data:
+        st.write(u["nome"])
+        st.write(u["ruolo"])
+        if u["audio_url"]:
+            st.audio(u["audio_url"])
+            st.divider()
 
 
 
