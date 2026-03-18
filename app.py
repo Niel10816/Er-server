@@ -28,7 +28,7 @@ audio_file = st.file_uploader("Carica un audio (mp3)", type=["mp3"])
 if st.button("Salva il profilo"):
     audio_url = None
    if audio_file is not None:
-    file_bytes = audio_file.read()
+       file_bytes = audio_file.read()
 
     # Nome file sicuro
     nome_file = f"{nome.lower().replace(' ', '_')}.mp3"
