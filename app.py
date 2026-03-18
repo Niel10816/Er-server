@@ -29,7 +29,6 @@ if st.button("Salva il profilo"):
     audio_url = None
     if audio_file is not None:
         file_bytes = audio_file.read()
-        nome_file = audio_file.name
         # Carica sul bucket 'audio'
         supabase.storage.from_("audio").upload(nome_file, file_bytes)
         # Crea URL pubblico
