@@ -1,4 +1,2 @@
 streamlit==1.33.0
 supabase==2.4.0
-postgrest=0.10.6
-httpx==0.24.1
