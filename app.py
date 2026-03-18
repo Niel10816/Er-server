@@ -2,7 +2,7 @@
 import streamlit as st
 from supabase import create_client
 url = "https://hcyuowvrrjccmvcgebaj.supabase.co"
-key = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImtqcW5jZ2FzaXJqemlsb3ZpYmF0Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzI0NjkyNTgsImV4cCI6MjA4ODA0NTI1OH0.qDVawy4rq8QCO9fP5tJsTSVN8PrgZW5BKwFOWxX2ECI"
+key = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImhjeXVvd3ZycmpjY212Y2dlYmFqIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzM3NjExOTYsImV4cCI6MjA4OTMzNzE5Nn0.rpMn8jxHagUJsOLjJXW79oV5ogUnGhxv-kr9TGWhj98"
 supabase = create_client(url,key)
 st.title("BeginnerCollab")
 nome = st.text_input("Email *questa email sarà visibile a tutti gli utenti della piattaforma")
