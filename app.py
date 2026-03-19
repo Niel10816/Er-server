@@ -29,15 +29,9 @@ if st.button("Salva il profilo"):
     audio_url = None
     if audio_file is not None:
         file_bytes = audio_file.read()
-
-    # Nome file sicuro
-    nome_file = f"{nome.lower().replace(' ', '_')}.mp3"
-
-    # Upload con upsert=True per sovrascrivere file esistente
-    supabase.storage.from_("audio").upload(nome_file, file_bytes, {"upsert": True})
-
-    # Ottieni URL pubblico
-    audio_url = supabase.storage.from_("audio").get_public_url(nome_file)["publicUrl"]
+        nome_file = f"{nome.lower().replace(' ', '_')}.mp3"
+        supabase.storage.from_("audio").upload(nome_file, file_bytes, {"upsert": True})
+        audio_url = supabase.storage.from_("audio").get_public_url(nome_file)["publicUrl"]
 
 
     # Inserimento nella tabella 'utenti'
