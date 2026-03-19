@@ -102,11 +102,9 @@ for u in response.data:
         
     if filtro_genere != "tutti":
         generi_utente = u.get("generi")
-
-    # se è una lista (tipo ['trap'])
-    if isinstance(generi_utente, list):
-        if filtro_genere not in generi_utente:
-            continue
+        if isinstance(generi_utente, list):
+            if filtro_genere not in generi_utente:
+                continue
 
     # se è una stringa normale
     else:
