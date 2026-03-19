@@ -102,7 +102,7 @@ for u in response.data:
 
     # filtro genere musicale
     if filtro_genere != "tutti":
-         generi_utente =str(u.get("generi", "")).lower()
+        generi_utente =str(u.get("generi", "")).lower()
         if filtro_genere.lower() not in generi_utente:
             continue
 
