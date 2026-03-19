@@ -79,18 +79,43 @@ if response.data:
     # --------------------
     # Barra di ricerca collaboratori
     # --------------------
-    ricerca = st.text_input("Cerca collaboratori per nome")
-    st.subheader("Collaboratori suggeriti")
+       # Barra di ricerca collaboratori
+    # --------------------
+    st.subheader("🔎 Trova collaboratori")
 
-    for u, score in risultati:
-        if u["nome"] != current_user["nome"]:
-            if ricerca.lower() in u["nome"].lower():
-                st.write(f"**{u['nome']}** - {u['ruolo']}")
-                # Se ha caricato audio, mostra player
-                if u.get("audio_url"):
-                    st.audio(u["audio_url"], format="audio/mp3")
+# Filtri
+filtro_ruolo = st.selectbox(
+    "Ruolo",
+    ["tutti", "produttore", "cantante", "entrambi"]
+)
 
+filtro_genere = st.selectbox(
+    "Genere musicale",
+    ["tutti", "pop", "trap", "hiphop", "rock", "edm"]
+)
 
+st.subheader("🎧 Artisti disponibili")
 
+for u in response.data:
 
+    # NON mostrare se stesso
+    if u["nome"] == current_user["nome"]:
+        continue
 
+    # filtro ruolo
+    if filtro_ruolo != "tutti" and u["ruolo"] != filtro_ruolo:
+        continue
+
+    # filtro genere musicale
+    if filtro_genere != "tutti":
+        if filtro_genere.lower() not in str(u.get("generi", "")).lower():
+            continue
+
+    # stampa utente
+    st.write(f"👤 {u['nome']} - {u['ruolo']}")
+
+    # player audio
+    if u.get("audio_url"):
+        st.audio(u["audio_url"])
+
+    st.divider()
