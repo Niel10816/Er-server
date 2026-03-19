@@ -20,7 +20,7 @@ st.title("Collaboratori Musicali")
 # --------------------
 nome = st.text_input("Nome")
 ruolo = st.selectbox("Chi sei?", ["produttore", "cantante",])
-genere = st.selectbox("Genere", ["tutti","rock", "jazz", "tecno", "classico", "rap"])
+genere = st.selectbox("Genere", [ "pop", "tecno", "rap", "classico", "rock", "jazz"])
 
 # Caricamento audio MP3
 audio_file = st.file_uploader("Carica un audio (mp3)", type=["mp3"])
@@ -85,7 +85,7 @@ filtro_ruolo = st.selectbox(
 
 filtro_genere = st.selectbox(
     "Genere musicale",
-    ["tutti","pop", "tecno", "rap", "classico", "rock", "jazz"]
+    ["tutti", "pop", "tecno", "rap", "classico", "rock", "jazz"]
 )
 
 st.subheader("🎧 Artisti disponibili")
