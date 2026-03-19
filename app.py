@@ -112,7 +112,7 @@ for u in response.data:
             continue
 
     # stampa utente
-    st.write(f"👤 {u['nome']} - {u['ruolo']}")
+    st.write(f"👤 {u['nome']} - {u['ruolo']} -{u['genere']}")
 
     # player audio
     if u.get("audio_url"):
