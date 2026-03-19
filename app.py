@@ -105,11 +105,9 @@ for u in response.data:
         if isinstance(generi_utente, list):
             if filtro_genere not in generi_utente:
                 continue
-
-    # se è una stringa normale
-    else:
-        if filtro_genere.lower() not in str(generi_utente).lower():
-            continue
+            else:
+                if filtro_genere.lower() not in str(generi_utente).lower():
+                    continue
 
     # stampa utente
     st.write(f"👤 {u['nome']} - {u['ruolo']} -{u['genere']}")
