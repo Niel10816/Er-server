@@ -91,7 +91,7 @@ filtro_ruolo = st.selectbox(
 
 filtro_genere = st.selectbox(
     "Genere musicale",
-    ["tutti", "pop", "trap", "hiphop", "rock", "edm"]
+    ["tutti","pop", "tecno", "rap", "classico", "rock", "jazz"]
 )
 
 st.subheader("🎧 Artisti disponibili")
