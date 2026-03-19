@@ -20,10 +20,9 @@ if st.button("Salva il profilo"):
  if audio_file is not None:
   file_bytes = audio_file.read()
   nome_file = f"{nome.lower().replace(' ', '_')}.mp3"
-
-    supabase.storage.from_("audio").upload(nome_file, file_bytes, {"upsert": True})
-    audio_url = supabase.storage.from_("audio").get_public_url(nome_file)["publicUrl"]
-supabase.table("utenti").insert({
+  supabase.storage.from_("audio").upload(nome_file, file_bytes, {"upsert": True})
+  audio_url = supabase.storage.from_("audio").get_public_url(nome_file)["publicUrl"]
+  supabase.table("utenti").insert({
         "nome": nome,
         "ruolo": ruolo,
         "genere": genere,
