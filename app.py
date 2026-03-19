@@ -25,7 +25,7 @@ if st.button("Salva il profilo"):
 
     supabase.storage.from_("audio").upload(nome_file, file_bytes, {"upsert": True})
         audio_url = supabase.storage.from_("audio").get_public_url(nome_file)["publicUrl"]
-    supabase.table("utenti").insert({
+supabase.table("utenti").insert({
         "nome": nome,
         "ruolo": ruolo,
         "genere": genere,
