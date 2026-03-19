@@ -99,10 +99,9 @@ for u in response.data:
     # filtro ruolo
     if filtro_ruolo != "tutti" and u["ruolo"] != filtro_ruolo:
         continue
-
-    # filtro genere musicale
-       if filtro_genere != "tutti":
-    generi_utente = u.get("generi")
+        
+    if filtro_genere != "tutti":
+        generi_utente = u.get("generi")
 
     # se è una lista (tipo ['trap'])
     if isinstance(generi_utente, list):
