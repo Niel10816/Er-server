@@ -31,8 +31,7 @@ supabase.table("utenti").insert({
         "genere": genere,
         "audio_url": audio_url
     }).execute()
-
-    st.success("Profilo salvato!")
+st.success("Profilo salvato!")
 
 response = supabase.table("utenti").select("*").execute()
 
