@@ -101,9 +101,17 @@ for u in response.data:
         continue
 
     # filtro genere musicale
-    if filtro_genere != "tutti":
-        generi_utente =str(u.get("generi", "")).lower()
-        if filtro_genere.lower() not in generi_utente:
+       if filtro_genere != "tutti":
+    generi_utente = u.get("generi")
+
+    # se è una lista (tipo ['trap'])
+    if isinstance(generi_utente, list):
+        if filtro_genere not in generi_utente:
+            continue
+
+    # se è una stringa normale
+    else:
+        if filtro_genere.lower() not in str(generi_utente).lower():
             continue
 
     # stampa utente
