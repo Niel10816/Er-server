@@ -86,7 +86,7 @@ if response.data:
 # Filtri
 filtro_ruolo = st.selectbox(
     "Ruolo",
-    ["tutti", "produttore", "cantante", "entrambi"]
+    ["tutti", "produttore", "cantante",]
 )
 
 filtro_genere = st.selectbox(
