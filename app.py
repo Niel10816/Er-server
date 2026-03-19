@@ -114,3 +114,4 @@ for u in response.data:
         st.audio(u["audio_url"])
 
     st.divider()
+st.write("DEBUG:", u.get("generi", "nessun genere"))
