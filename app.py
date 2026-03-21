@@ -50,7 +50,8 @@ if search_query:
 else:
  filtered_df = df
  st.dataframe(filtered_df)
-    filtro_ruolo = st.selectbox(
+ 
+ filtro_ruolo = st.selectbox(
         "Ruolo",
         ["tutti", "produttore", "cantante"]
     )
