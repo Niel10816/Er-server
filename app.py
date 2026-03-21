@@ -53,10 +53,8 @@ else:
  
  filtro_ruolo = st.selectbox(
         "Ruolo",
-        ["tutti", "produttore", "cantante"]
-    )
-
-    filtro_genere = st.selectbox(
+        ["tutti", "produttore", "cantante"])
+ filtro_genere = st.selectbox(
         "Genere musicale",
         ["tutti", "rock", "jazz", "pop" ,"tecno", "classico", "rap"]
     )
