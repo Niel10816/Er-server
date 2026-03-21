@@ -55,8 +55,7 @@ if response.data:
     st.audio(u["audio_url"])
 
 st.divider()
-
- search_query = st.text_input("Cerca per nome:")
+search_query = st.text_input("Cerca per nome:")
 df = pd.DataFrame(response.data)
 if search_query:
  filtered_df =df[df["nome"].str.contains(search_query,case=False)]
