@@ -44,7 +44,8 @@ if response.data:
 
  current_user = response.data[-1]
  st.subheader("🔎 Trova collaboratori")
- 
+ for u in response.data:
+
  if filtro_ruolo != "tutti" and u["ruolo"] != filtro_ruolo:
             continue
  if filtro_genere != "tutti":
@@ -67,7 +68,3 @@ else:
         ["tutti", "produttore", "cantante"])
  filtro_genere = st.selectbox("Genere musicale",["tutti", "rock", "jazz", "pop" ,"tecno", "classico", "rap"])
  st.subheader("🎧 Artisti disponibili")
-
-for u in response.data:
-
-    
