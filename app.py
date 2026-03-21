@@ -44,7 +44,7 @@ if response.data:
     current_user = response.data[-1]
 
     st.subheader("🔎 Trova collaboratori")
-screach_query = st.text_input("Cerca per nome:")
+search_query = st.text_input("Cerca per nome:")
 if search_query:
  filtered_df =df[df["nome"].str.contains(search_quesy,case=false)]
 else:
