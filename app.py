@@ -16,19 +16,26 @@ genere = st.selectbox("Genere musicale", ["rock", "jazz", "tecno", "pop","classi
 audio_file = st.file_uploader("Carica un audio (mp3)", type=["mp3"])
 
 if st.button("Salva il profilo"):
- audio_url = None
- if audio_file is not None:
-  file_bytes = audio_file.read()
-  nome_file = f"{nome.lower().replace(' ', '_')}.mp3"
- supabase.storage.from_("audio").upload(nome_file, file_bytes, {"upsert": True})
- audio_url = supabase.storage.from_("audio").get_public_url(nome_file)["publicUrl"]
- supabase.table("utenti").insert({
+
+    audio_url = None
+
+    if audio_file is not None:
+        file_bytes = audio_file.read()
+        nome_file = f"{nome.lower().replace(' ', '_')}.mp3"
+
+        supabase.storage.from_("audio").upload(nome_file, file_bytes)
+
+        audio_url = supabase.storage.from_("audio").get_public_url(nome_file)["publicUrl"]
+
+    supabase.table("utenti").insert({
         "nome": nome,
         "ruolo": ruolo,
         "genere": genere,
         "audio_url": audio_url
     }).execute()
-st.success("Profilo salvato!")
+
+    st.success("Profilo salvato!")
+
 
 response = supabase.table("utenti").select("*").execute()
 
