@@ -50,7 +50,7 @@ if response.data:
  if filtro_genere != "tutti":
    if u.get("genere") != filtro_genere:
                 continue
-    st.write(f"👤 {u['nome']} - {u['ruolo']}-{u['genere']}")
+   st.write(f"👤 {u['nome']} - {u['ruolo']}-{u['genere']}")
   if u.get("audio_url"):
             st.audio(u["audio_url"])
 
