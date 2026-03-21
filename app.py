@@ -57,7 +57,7 @@ else:
  filtro_genere = st.selectbox("Genere musicale",["tutti", "rock", "jazz", "pop" ,"tecno", "classico", "rap"])
  st.subheader("🎧 Artisti disponibili")
 
-    for u in response.data:
+for u in response.data:
 
      
 
