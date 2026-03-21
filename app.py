@@ -7,7 +7,7 @@ url = "https://hcyuowvrrjccmvcgebaj.supabase.co"
 key = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImhjeXVvd3ZycmpjY212Y2dlYmFqIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzM3NjExOTYsImV4cCI6MjA4OTMzNzE5Nn0.rpMn8jxHagUJsOLjJXW79oV5ogUnGhxv-kr9TGWhj98"
 supabase = create_client(url, key)
 
-st.title("Collaboratori Musicali")
+st.title("Beginner Collab")
 
 nome = st.text_input("Nome")
 ruolo = st.selectbox("Chi sei?", ["produttore", "cantante"])
@@ -45,10 +45,11 @@ if response.data:
 
     st.subheader("🔎 Trova collaboratori")
 search_query = st.text_input("Cerca per nome:")
+df = nnome
 if search_query:
- filtered_df =df[df["nome"].str.contains(search_quesy,case=false)]
+ filtered_df =df[df["nome"].str.containsuesy(search_q,case=false)]
 else:
- filtered_df = df[df["nome"].str.contains(search_quesy,case=false)]
+ filtered_df = df
  st.dataframe(filtered_df)
  
  filtro_ruolo = st.selectbox(
