@@ -1,6 +1,7 @@
  
 
 import streamlit as st
+impowrt pandas as pd
 from supabase import create_client
 
 url = "https://hcyuowvrrjccmvcgebaj.supabase.co"
