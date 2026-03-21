@@ -45,13 +45,13 @@ if response.data:
     current_user = response.data[-1]
 
     st.subheader("🔎 Trova collaboratori")
-search_query = st.text_input("Cerca per nome:")
-df = pd.DataFrame(response.data)
-if search_query:
- filtered_df =df[df["nome"].str.contains(search_query,case=False)]
-else:
- filtered_df = df
- st.dataframe(filtered_df)
+ search_query = st.text_input("Cerca per nome:")
+ df = pd.DataFrame(response.data)
+ if search_query:
+  filtered_df =df[df["nome"].str.contains(search_query,case=False)]
+ else:
+  filtered_df = df
+  st.dataframe(filtered_df)
  
  filtro_ruolo = st.selectbox(
         "Ruolo",
