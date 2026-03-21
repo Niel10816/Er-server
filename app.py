@@ -52,7 +52,7 @@ if response.data:
                 continue
    st.write(f"👤 {u['nome']} - {u['ruolo']}-{u['genere']}")
    if u.get("audio_url"):
-   st.audio(u["audio_url"])
+    st.audio(u["audio_url"])
 
 st.divider()
 
