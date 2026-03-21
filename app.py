@@ -44,7 +44,6 @@ if response.data:
 
  current_user = response.data[-1]
  st.subheader("🔎 Trova collaboratori")
- for u in response.data:
 
  if filtro_ruolo != "tutti" and u["ruolo"] != filtro_ruolo:
             continue
