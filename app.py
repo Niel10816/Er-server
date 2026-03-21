@@ -44,6 +44,22 @@ if response.data:
 
  current_user = response.data[-1]
  st.subheader("🔎 Trova collaboratori")
+  
+
+        if filtro_ruolo != "tutti" and u["ruolo"] != filtro_ruolo:
+            continue
+
+        if filtro_genere != "tutti":
+            if u.get("genere") != filtro_genere:
+                continue
+
+        st.write(f"👤 {u['nome']} - {u['ruolo']}-{u['genere']}")
+
+        if u.get("audio_url"):
+            st.audio(u["audio_url"])
+
+        st.divider()
+
  search_query = st.text_input("Cerca per nome:")
 df = pd.DataFrame(response.data)
 if search_query:
@@ -59,18 +75,4 @@ else:
 
 for u in response.data:
 
-     
-
-        if filtro_ruolo != "tutti" and u["ruolo"] != filtro_ruolo:
-            continue
-
-        if filtro_genere != "tutti":
-            if u.get("genere") != filtro_genere:
-                continue
-
-        st.write(f"👤 {u['nome']} - {u['ruolo']}-{u['genere']}")
-
-        if u.get("audio_url"):
-            st.audio(u["audio_url"])
-
-        st.divider()
+    
