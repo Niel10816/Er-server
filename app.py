@@ -48,7 +48,7 @@ if response.data:
 search_query = st.text_input("Cerca per nome:")
 df = pd.DataFrame(response.data)
 if search_query:
- filtered_df =df[df["nome"].str.contains(search_q,case=false)]
+ filtered_df =df[df["nome"].str.contains(search_querty,case=false)]
 else:
  filtered_df = df
  st.dataframe(filtered_df)
