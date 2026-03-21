@@ -47,7 +47,7 @@ if response.data:
  
  if filtro_ruolo != "tutti" and u["ruolo"] != filtro_ruolo:
             continue
-  if filtro_genere != "tutti":
+ if filtro_genere != "tutti":
    if u.get("genere") != filtro_genere:
                 continue
 
