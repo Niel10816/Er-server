@@ -1,7 +1,7 @@
  
 
 import streamlit as st
-impowrt pandas as pd
+import pandas as pd
 from supabase import create_client
 
 url = "https://hcyuowvrrjccmvcgebaj.supabase.co"
@@ -46,7 +46,7 @@ if response.data:
 
     st.subheader("🔎 Trova collaboratori")
 search_query = st.text_input("Cerca per nome:")
-df = DataFrame(response.data)
+df = pd.DataFrame(response.data)
 if search_query:
  filtered_df =df[df["nome"].str.containsuesy(search_q,case=false)]
 else:
