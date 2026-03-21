@@ -1,14 +1,11 @@
- 
-
 import streamlit as st
-import pandas as pd
 from supabase import create_client
 
 url = "https://hcyuowvrrjccmvcgebaj.supabase.co"
 key = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImhjeXVvd3ZycmpjY212Y2dlYmFqIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzM3NjExOTYsImV4cCI6MjA4OTMzNzE5Nn0.rpMn8jxHagUJsOLjJXW79oV5ogUnGhxv-kr9TGWhj98"
 supabase = create_client(url, key)
 
-st.title("Beginner Collab")
+st.title("Collaboratori Musicali")
 
 nome = st.text_input("Nome")
 ruolo = st.selectbox("Chi sei?", ["produttore", "cantante"])
@@ -26,7 +23,7 @@ if st.button("Salva il profilo"):
 
         supabase.storage.from_("audio").upload(nome_file, file_bytes)
 
-        audio_url = supabase.storage.from_("audio").get_public_url(nome_file)
+        audio_url = supabase.storage.from_("audio").get_public_url(nome_file)["publicUrl"]
 
     supabase.table("utenti").insert({
         "nome": nome,
@@ -37,33 +34,42 @@ if st.button("Salva il profilo"):
 
     st.success("Profilo salvato!")
 
-
 response = supabase.table("utenti").select("*").execute()
 
 if response.data:
 
- current_user = response.data[-1]
- st.subheader("🔎 Trova collaboratori")
+    current_user = response.data[-1]
 
- if filtro_ruolo != "tutti" and u["ruolo"] != filtro_ruolo:
-            continue
- if filtro_genere != "tutti":
-   if u.get("genere") != filtro_genere:
-                continue
-   st.write(f"👤 {u['nome']} - {u['ruolo']}-{u['genere']}")
-   if u.get("audio_url"):
-    st.audio(u["audio_url"])
+    st.subheader("🔎 Trova collaboratori")
 
-st.divider()
-search_query = st.text_input("Cerca per nome:")
-df = pd.DataFrame(response.data)
-if search_query:
- filtered_df =df[df["nome"].str.contains(search_query,case=False)]
-else:
- filtered_df = df
- st.dataframe(filtered_df)
- filtro_ruolo = st.selectbox(
+    filtro_ruolo = st.selectbox(
         "Ruolo",
-        ["tutti", "produttore", "cantante"])
- filtro_genere = st.selectbox("Genere musicale",["tutti", "rock", "jazz", "pop" ,"tecno", "classico", "rap"])
- st.subheader("🎧 Artisti disponibili")
+        ["tutti", "produttore", "cantante"]
+    )
+
+    filtro_genere = st.selectbox(
+        "Genere musicale",
+        ["tutti", "rock", "jazz", "pop" ,"tecno", "classico", "rap"]
+    )
+
+    st.subheader("🎧 Artisti disponibili")
+
+    for u in response.data:
+
+        if u["nome"] == current_user["nome"]:
+            continue
+
+        if filtro_ruolo != "tutti" and u["ruolo"] != filtro_ruolo:
+            continue
+
+        if filtro_genere != "tutti":
+            if u.get("genere") != filtro_genere:
+                continue
+
+        st.write(f"👤 {u['nome']} - {u['ruolo']}-{u['genere']}")
+
+        if u.get("audio_url"):
+            st.audio(u["audio_url"])
+
+        st.divider()
+
