@@ -59,8 +59,7 @@ if response.data:
 
     for u in response.data:
 
-        if u["nome"] == current_user["nome"]:
-            continue
+     
 
         if filtro_ruolo != "tutti" and u["ruolo"] != filtro_ruolo:
             continue
