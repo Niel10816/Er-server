@@ -45,7 +45,7 @@ if response.data:
 
     st.subheader("🔎 Trova collaboratori")
 search_query = st.text_input("Cerca per nome:")
-df = nome
+df = pd.DataFrame(response.data)
 if search_query:
  filtered_df =df[df["nome"].str.containsuesy(search_q,case=false)]
 else:
