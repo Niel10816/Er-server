@@ -48,7 +48,7 @@ search_query = st.text_input("Cerca per nome:")
 if search_query:
  filtered_df =df[df["nome"].str.contains(search_quesy,case=false)]
 else:
- filtered_df = df
+ filtered_df = df[df["nome"].str.contains(search_quesy,case=false)]
  st.dataframe(filtered_df)
  
  filtro_ruolo = st.selectbox(
