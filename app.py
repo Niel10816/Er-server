@@ -42,8 +42,8 @@ response = supabase.table("utenti").select("*").execute()
 
 if response.data:
 
-    current_user = response.data[-1]
- st.subheader("🔎 Trova collaboratori")
+current_user = response.data[-1]
+st.subheader("🔎 Trova collaboratori")
 search_query = st.text_input("Cerca per nome:")
 df = pd.DataFrame(response.data)
 if search_query:
