@@ -54,22 +54,28 @@ if response.data:
 
     st.subheader("🎧 Artisti disponibili")
 
-    for u in response.data:
 
-        if u["nome"] == current_user["nome"]:
+for u in response.data:
+
+    if u["nome"] == current_user["nome"]:
+        continue
+
+    if ricerca_nome:
+        if ricerca_nome.lower() not in u["nome"].lower():
             continue
 
-        if filtro_ruolo != "tutti" and u["ruolo"] != filtro_ruolo:
+    if filtro_ruolo != "tutti" and u["ruolo"] != filtro_ruolo:
+        continue
+
+    if filtro_genere != "tutti":
+        if u.get("genere") != filtro_genere:
             continue
 
-        if filtro_genere != "tutti":
-            if u.get("genere") != filtro_genere:
-                continue
+    st.write(f"👤 {u['nome']} - {u['ruolo']} - {u['genere']}")
 
-        st.write(f"👤 {u['nome']} - {u['ruolo']}-{u['genere']}")
+    if u.get("audio_url"):
+        st.audio(u["audio_url"])
 
-        if u.get("audio_url"):
-            st.audio(u["audio_url"])
+    st.divider()
 
-        st.divider()
 
