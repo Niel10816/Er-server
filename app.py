@@ -3,7 +3,7 @@ from supabase import create_client
 import time
 
 url = "https://hcyuowvrrjccmvcgebaj.supabase.co"
-key = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImhjeXVvd3ZycmpjY212Y2dlYmFqIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzM3NjExOTYsImV4cCI6MjA4OTMzNzE5Nn0.rpMn8jxHagUJsOLjJXW79oV5ogUnGhxv-kr9TGWhj98"
+key = "LA_TUA_KEY"
 supabase = create_client(url, key)
 
 st.title("Beginner Collab")
@@ -12,25 +12,28 @@ nome = st.text_input("Nome")
 contatto = st.text_input("Contatto (Instagram, email, ecc)")
 ruolo = st.selectbox("Chi sei?", ["produttore", "cantante"])
 
-audio_file = st.file_uploader("Carica un audio (mp3)", type=["mp3"])
+audio_files = st.file_uploader("Carica audio (mp3)", type=["mp3"], accept_multiple_files=True)
 
 if st.button("Salva il profilo"):
 
-    audio_url = None
+    audio_urls = []
 
-    if audio_file is not None:
-        file_bytes = audio_file.read()
-        nome_file = f"{nome.lower().replace(' ', '_')}_{int(time.time())}.mp3"
+    if audio_files:
+        for audio_file in audio_files:
+            file_bytes = audio_file.read()
+            nome_file = f"{nome.lower().replace(' ', '_')}_{int(time.time())}_{audio_file.name}"
 
-        supabase.storage.from_("audio").upload(nome_file, file_bytes)
+            supabase.storage.from_("audio").upload(nome_file, file_bytes)
 
-        audio_url = supabase.storage.from_("audio").get_public_url(nome_file)
+            url_file = supabase.storage.from_("audio").get_public_url(nome_file)
+
+            audio_urls.append(url_file)
 
     supabase.table("utenti").insert({
         "nome": nome,
         "ruolo": ruolo,
         "contatto": contatto,
-        "audio_url": audio_url
+        "audio_url": audio_urls
     }).execute()
 
     st.success("Profilo salvato!")
@@ -66,11 +69,12 @@ if response.data:
         st.write(f"📩 Contatto: {u.get('contatto', 'Non disponibile')}")
 
         if u.get("audio_url"):
-            st.audio(u["audio_url"])
+            for audio in u["audio_url"]:
+                st.audio(audio)
 
         st.divider()
 
-st.subheader("Feedback anonimo")
+st.subheader("💬 Invia un feedback")
 
 feedback = st.text_area("Scrivi qui il tuo feedback")
 
@@ -78,9 +82,7 @@ if st.button("Invia feedback"):
 
     supabase.table("feedback").insert({
         "messaggio": feedback,
-    
         "nome": nome
     }).execute()
 
     st.success("Feedback inviato!")
-
