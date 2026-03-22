@@ -54,8 +54,7 @@ if response.data:
     st.subheader("🎧 Artisti disponibili")
 
     for u in response.data:
-        if u["nome"] == current_user["nome"]:
-            continue
+        
         if ricerca_nome and ricerca_nome.lower() not in u["nome"].lower():
             continue
         if filtro_ruolo != "tutti" and u["ruolo"] != filtro_ruolo:
