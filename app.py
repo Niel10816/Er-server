@@ -18,7 +18,7 @@ if st.button("Salva il profilo"):
 
  audio_url = None  
 
-if audio_file is not None:  
+ if audio_file is not None:  
     file_bytes = audio_file.read()  
     nome_file = f"{nome.lower().replace(' ', '_')}_{int(time.time())}.mp3"  
 
