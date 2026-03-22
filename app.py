@@ -2,22 +2,24 @@ import streamlit as st
 from supabase import create_client
 import time
 import re
-import requests
 
+# --- Configurazione Supabase ---
 url = "https://hcyuowvrrjccmvcgebaj.supabase.co"
-key = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImhjeXVvd3ZycmpjY212Y2dlYmFqIiwicm9sZSI6InNlcnZpY2Vfcm9sZSIsImlhdCI6MTc3Mzc2MTE5NiwiZXhwIjoyMDg5MzM3MTk2fQ.hwuG0YMFLSfSheNa460wTuVxu2TQyCpvj7doyHHB4pg"  # Usa la service key, non la anon key
+key = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImhjeXVvd3ZycmpjY212Y2dlYmFqIiwicm9sZSI6InNlcnZpY2Vfcm9sZSIsImlhdCI6MTc3Mzc2MTE5NiwiZXhwIjoyMDg5MzM3MTk2fQ.hwuG0YMFLSfSheNa460wTuVxu2TQyCpvj7doyHHB4pg"  # Usa la service key per upload
 supabase = create_client(url, key)
 
-st.title("Collaboratori Musicali")
+st.title("Beginner Collab")
 
+# --- Form per nuovo utente ---
 nome = st.text_input("Nome")
 contatto = st.text_input("Contatto (Instagram, email, ecc)")
 ruolo = st.selectbox("Chi sei?", ["produttore", "cantante"])
 
-audio_files = st.file_uploader("Carica audio (mp3)", type=["mp3"], accept_multiple_files=True)
+audio_files = st.file_uploader(
+    "Carica audio (mp3)", type=["mp3"], accept_multiple_files=True
+)
 
 if st.button("Salva il profilo"):
-
     audio_urls = []
 
     if audio_files:
@@ -34,10 +36,12 @@ if st.button("Salva il profilo"):
             # Upload su Supabase
             supabase.storage.from_("audio").upload(nome_file, file_bytes)
 
-            # Prendi URL pubblico come stringa
+            # URL pubblico
             url_file = supabase.storage.from_("audio").get_public_url(nome_file)
-            audio_urls.append(url_file['publicUrl'])
+            if url_file and "publicUrl" in url_file:
+                audio_urls.append(url_file["publicUrl"])
 
+    # Salva profilo nel DB
     supabase.table("utenti").insert({
         "nome": nome,
         "ruolo": ruolo,
@@ -47,7 +51,7 @@ if st.button("Salva il profilo"):
 
     st.success("Profilo salvato!")
 
-# Recupera utenti
+# --- Recupera utenti ---
 response = supabase.table("utenti").select("*").execute()
 
 if response.data:
@@ -63,8 +67,7 @@ if response.data:
 
     for u in response.data:
 
-        if u["nome"] == current_user["nome"]:
-            continue
+     
 
         if ricerca_nome and ricerca_nome.lower() not in u["nome"].lower():
             continue
@@ -75,19 +78,14 @@ if response.data:
         st.write(f"👤 {u['nome']} - {u['ruolo']}")
         st.write(f"📩 Contatto: {u.get('contatto', 'Non disponibile')}")
 
-        # Riproduci audio usando URL diretto
-        if u.get("audio_url"):
-            for audio_url in u["audio_url"]:
-                try:
-                    st.audio(audio_url)  # prova prima con URL diretto
-                except:
-                    # Se fallisce, scarica bytes e riproduci
-                    r = requests.get(audio_url)
-                    if r.status_code == 200:
-                        st.audio(r.content)
+        # Riproduci audio (solo URL validi)
+        for audio_url in u.get("audio_url", []):
+            if audio_url:
+                st.audio(audio_url)
 
         st.divider()
 
+# --- Feedback ---
 st.subheader("💬 Invia un feedback")
 feedback = st.text_area("Scrivi qui il tuo feedback")
 
