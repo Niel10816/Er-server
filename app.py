@@ -6,7 +6,7 @@ url = "https://hcyuowvrrjccmvcgebaj.supabase.co"
 key = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImhjeXVvd3ZycmpjY212Y2dlYmFqIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzM3NjExOTYsImV4cCI6MjA4OTMzNzE5Nn0.rpMn8jxHagUJsOLjJXW79oV5ogUnGhxv-kr9TGWhj98"
 supabase = create_client(url, key)
 
-st.title("Collaboratori Musicali")
+st.title("Beginner Collab")
 
 nome = st.text_input("Nome")
 contatto = st.text_input("Contatto (Instagram, email, ecc)")
@@ -17,7 +17,6 @@ audio_file = st.file_uploader("Carica un audio (mp3)", type=["mp3"])
 if st.button("Salva il profilo"):
 
  audio_url = None  
-
  if audio_file is not None:  
     file_bytes = audio_file.read()  
     nome_file = f"{nome.lower().replace(' ', '_')}_{int(time.time())}.mp3"  
@@ -54,9 +53,7 @@ st.subheader("🎧 Artisti disponibili")
 
 for u in response.data:  
 
-    if u["nome"] == current_user["nome"]:  
-        continue  
-
+   
     if ricerca_nome:  
         if ricerca_nome.lower() not in u["nome"].lower():  
             continue  
