@@ -74,14 +74,15 @@ if response.data:
         st.divider()
 
 # --- Feedback ---
-st.subheader("💬 Invia un feedback")
+st.subheader("Feedback anonimo")
 
-feedback = st.text_area("Scrivi qui il tuo feedback")
+feedback = st.text_area("")
 
 if st.button("Invia feedback"):
 
     supabase.table("feedback").insert({
-        "messaggio": feedback
+        "messaggio": feedback,
+        "nome": nome
     }).execute()
 
     st.success("Feedback inviato!")
