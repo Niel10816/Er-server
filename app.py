@@ -39,7 +39,7 @@ response = supabase.table("utenti").select("*").execute()
 
 if response.data:
 
-current_user = response.data[-1]  
+ current_user = response.data[-1]  
 
 st.subheader("🔎 Trova collaboratori")  
 
