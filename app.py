@@ -6,7 +6,7 @@ url = "https://hcyuowvrrjccmvcgebaj.supabase.co"
 key = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImhjeXVvd3ZycmpjY212Y2dlYmFqIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzM3NjExOTYsImV4cCI6MjA4OTMzNzE5Nn0.rpMn8jxHagUJsOLjJXW79oV5ogUnGhxv-kr9TGWhj98"  # usa service key
 supabase = create_client(url, key)
 
-st.title("Collaboratori Musicali")
+st.title("Beginner Collab")
 
 nome = st.text_input("Nome")
 contatto = st.text_input("Contatto (Instagram, email, ecc)")
@@ -57,8 +57,7 @@ if response.data:
 
     for u in response.data:
 
-        if u["nome"] == current_user["nome"]:
-            continue
+     
 
         if ricerca_nome and ricerca_nome.lower() not in u["nome"].lower():
             continue
