@@ -3,7 +3,7 @@ from supabase import create_client
 import time
 
 url = "https://hcyuowvrrjccmvcgebaj.supabase.co"
-key = "LA_TUA_KEY"
+key = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImhjeXVvd3ZycmpjY212Y2dlYmFqIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzM3NjExOTYsImV4cCI6MjA4OTMzNzE5Nn0.rpMn8jxHagUJsOLjJXW79oV5ogUnGhxv-kr9TGWhj98"
 supabase = create_client(url, key)
 
 st.title("Beginner Collab")
