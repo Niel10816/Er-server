@@ -79,7 +79,8 @@ feedback = st.text_area("Scrivi qui il tuo feedback")
 if st.button("Invia feedback"):
 
     supabase.table("feedback").insert({
-        "messaggio": feedback;
+        "messaggio": feedback,
+    
         "nome": nome
     }).execute()
 
