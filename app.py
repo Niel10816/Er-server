@@ -1,51 +1,34 @@
 import streamlit as st
 from supabase import create_client
 import time
-import re
 
-# --- Configurazione Supabase ---
 url = "https://hcyuowvrrjccmvcgebaj.supabase.co"
-key = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImhjeXVvd3ZycmpjY212Y2dlYmFqIiwicm9sZSI6InNlcnZpY2Vfcm9sZSIsImlhdCI6MTc3Mzc2MTE5NiwiZXhwIjoyMDg5MzM3MTk2fQ.hwuG0YMFLSfSheNa460wTuVxu2TQyCpvj7doyHHB4pg"  # Service key, necessaria per upload
+key = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImhjeXVvd3ZycmpjY212Y2dlYmFqIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzM3NjExOTYsImV4cCI6MjA4OTMzNzE5Nn0.rpMn8jxHagUJsOLjJXW79oV5ogUnGhxv-kr9TGWhj98"
 supabase = create_client(url, key)
 
 st.title("Collaboratori Musicali")
 
-# --- Form per nuovo utente ---
 nome = st.text_input("Nome")
 contatto = st.text_input("Contatto (Instagram, email, ecc)")
 ruolo = st.selectbox("Chi sei?", ["produttore", "cantante"])
 
-audio_files = st.file_uploader(
-    "Carica audio (mp3)", type=["mp3"], accept_multiple_files=True
-)
+audio_files = st.file_uploader("Carica audio (mp3)", type=["mp3"], accept_multiple_files=True)
 
 if st.button("Salva il profilo"):
+
     audio_urls = []
 
     if audio_files:
         for audio_file in audio_files:
             file_bytes = audio_file.read()
-            if len(file_bytes) == 0:
-                st.warning(f"Il file {audio_file.name} è vuoto e non sarà caricato.")
-                continue
+            nome_file = f"{nome.lower().replace(' ', '_')}_{int(time.time())}_{audio_file.name}"
 
-            # Nome file sicuro
-            safe_name = re.sub(r"[^a-zA-Z0-9_-]", "_", audio_file.name)
-            nome_file = f"{nome.lower().replace(' ', '_')}_{int(time.time())}_{safe_name}"
-
-            # Upload su Supabase
             supabase.storage.from_("audio").upload(nome_file, file_bytes)
 
-            # --- URL pubblico o firmato ---
-            # Se il bucket è pubblico:
             url_file = supabase.storage.from_("audio").get_public_url(nome_file)
-            if url_file and "publicUrl" in url_file:
-                audio_urls.append(url_file["publicUrl"])
-            # Se il bucket è privato, usare signed URL:
-            # signed_file = supabase.storage.from_("audio").create_signed_url(nome_file, 3600)
-            # audio_urls.append(signed_file['signedUrl'])
 
-    # Salva profilo nel DB
+            audio_urls.append(url_file)
+
     supabase.table("utenti").insert({
         "nome": nome,
         "ruolo": ruolo,
@@ -55,7 +38,6 @@ if st.button("Salva il profilo"):
 
     st.success("Profilo salvato!")
 
-# --- Recupera utenti ---
 response = supabase.table("utenti").select("*").execute()
 
 if response.data:
@@ -63,8 +45,13 @@ if response.data:
     current_user = response.data[-1]
 
     st.subheader("🔎 Trova collaboratori")
+
     ricerca_nome = st.text_input("Cerca per nome")
-    filtro_ruolo = st.selectbox("Ruolo", ["tutti", "produttore", "cantante"])
+
+    filtro_ruolo = st.selectbox(
+        "Ruolo",
+        ["tutti", "produttore", "cantante"]
+    )
 
     st.subheader("🎧 Artisti disponibili")
 
@@ -73,8 +60,9 @@ if response.data:
         if u["nome"] == current_user["nome"]:
             continue
 
-        if ricerca_nome and ricerca_nome.lower() not in u["nome"].lower():
-            continue
+        if ricerca_nome:
+            if ricerca_nome.lower() not in u["nome"].lower():
+                continue
 
         if filtro_ruolo != "tutti" and u["ruolo"] != filtro_ruolo:
             continue
@@ -82,17 +70,21 @@ if response.data:
         st.write(f"👤 {u['nome']} - {u['ruolo']}")
         st.write(f"📩 Contatto: {u.get('contatto', 'Non disponibile')}")
 
-        # Riproduci audio SOLO se URL valido
-        for audio_url in u.get("audio_url", []):
-            if audio_url and isinstance(audio_url, str):
-                st.audio(audio_url)
+        if u.get("audio_url"):
+            for audio in u["audio_url"]:
+                st.audio(audio)
 
         st.divider()
 
-# --- Feedback ---
 st.subheader("💬 Invia un feedback")
+
 feedback = st.text_area("Scrivi qui il tuo feedback")
 
 if st.button("Invia feedback"):
-    supabase.table("feedback").insert({"messaggio": feedback}).execute()
+
+    supabase.table("feedback").insert({
+        "messaggio": feedback
+    }).execute()
+
     st.success("Feedback inviato!")
+
