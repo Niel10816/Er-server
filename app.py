@@ -3,10 +3,10 @@ from supabase import create_client
 import time
 
 url = "https://hcyuowvrrjccmvcgebaj.supabase.co"
-key = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImhjeXVvd3ZycmpjY212Y2dlYmFqIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzM3NjExOTYsImV4cCI6MjA4OTMzNzE5Nn0.rpMn8jxHagUJsOLjJXW79oV5ogUnGhxv-kr9TGWhj98"
+key = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImhjeXVvd3ZycmpjY212Y2dlYmFqIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzM3NjExOTYsImV4cCI6MjA4OTMzNzE5Nn0.rpMn8jxHagUJsOLjJXW79oV5ogUnGhxv-kr9TGWhj98"  # usa service key
 supabase = create_client(url, key)
 
-st.title("Beginner Collab")
+st.title("Collaboratori Musicali")
 
 nome = st.text_input("Nome")
 contatto = st.text_input("Contatto (Instagram, email, ecc)")
@@ -16,67 +16,73 @@ audio_file = st.file_uploader("Carica un audio (mp3)", type=["mp3"])
 
 if st.button("Salva il profilo"):
 
- audio_url = None  
- if audio_file is not None:  
-    file_bytes = audio_file.read()  
-    nome_file = f"{nome.lower().replace(' ', '_')}_{int(time.time())}.mp3"  
+    audio_url = None  
 
-    supabase.storage.from_("audio").upload(nome_file, file_bytes)  
+    if audio_file is not None:
+        file_bytes = audio_file.read()
+        nome_file = f"{nome.lower().replace(' ', '_')}_{int(time.time())}.mp3"
 
-    audio_url = supabase.storage.from_("audio").get_public_url(nome_file)  
+        supabase.storage.from_("audio").upload(nome_file, file_bytes)
 
-supabase.table("utenti").insert({  
-    "nome": nome,  
-    "ruolo": ruolo,  
-    "contatto": contatto,  
-    "audio_url": audio_url  
-}).execute()  
+        url_file = supabase.storage.from_("audio").get_public_url(nome_file)
+        if url_file and "publicUrl" in url_file:
+            audio_url = url_file["publicUrl"]
 
-st.success("Profilo salvato!")
+    supabase.table("utenti").insert({
+        "nome": nome,
+        "ruolo": ruolo,
+        "contatto": contatto,
+        "audio_url": audio_url
+    }).execute()
 
+    st.success("Profilo salvato!")
+
+# --- Lista collaboratori ---
 response = supabase.table("utenti").select("*").execute()
 
 if response.data:
 
- current_user = response.data[-1]  
+    current_user = response.data[-1]
 
-st.subheader("🔎 Trova collaboratori")  
+    st.subheader("🔎 Trova collaboratori")
 
-ricerca_nome = st.text_input("Cerca per nome")  
+    ricerca_nome = st.text_input("Cerca per nome")
 
-filtro_ruolo = st.selectbox(  
-    "Ruolo",  
-    ["tutti", "produttore", "cantante"]  
-)  
+    filtro_ruolo = st.selectbox(
+        "Ruolo",
+        ["tutti", "produttore", "cantante"]
+    )
 
-st.subheader("🎧 Artisti disponibili")  
+    st.subheader("🎧 Artisti disponibili")
 
-for u in response.data:  
+    for u in response.data:
 
-   
-    if ricerca_nome:  
-        if ricerca_nome.lower() not in u["nome"].lower():  
-            continue  
+        if u["nome"] == current_user["nome"]:
+            continue
 
-    if filtro_ruolo != "tutti" and u["ruolo"] != filtro_ruolo:  
-        continue  
+        if ricerca_nome and ricerca_nome.lower() not in u["nome"].lower():
+            continue
 
-    st.write(f"👤 {u['nome']} - {u['ruolo']}")  
-    st.write(f"📩 Contatto: {u.get('contatto', 'Non disponibile')}")  
+        if filtro_ruolo != "tutti" and u["ruolo"] != filtro_ruolo:
+            continue
 
-    if u.get("audio_url"):  
-        st.audio(u["audio_url"])  
+        st.write(f"👤 {u['nome']} - {u['ruolo']}")
+        st.write(f"📩 Contatto: {u.get('contatto', 'Non disponibile')}")
 
-    st.divider()
+        if u.get("audio_url"):
+            st.audio(u["audio_url"])
 
+        st.divider()
+
+# --- Feedback ---
 st.subheader("💬 Invia un feedback")
 
 feedback = st.text_area("Scrivi qui il tuo feedback")
 
 if st.button("Invia feedback"):
 
- supabase.table("feedback").insert({  
-    "messaggio": feedback  
- }).execute()  
+    supabase.table("feedback").insert({
+        "messaggio": feedback
+    }).execute()
 
- st.success("Feedback inviato!")
+    st.success("Feedback inviato!")
