@@ -7,7 +7,7 @@ url = "https://hcyuowvrrjccmvcgebaj.supabase.co"
 key = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImhjeXVvd3ZycmpjY212Y2dlYmFqIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzM3NjExOTYsImV4cCI6MjA4OTMzNzE5Nn0.rpMn8jxHagUJsOLjJXW79oV5ogUnGhxv-kr9TGWhj98"
 supabase = create_client(url, key)
 
-st.title("Collaboratori Musicali")
+st.title("Beginner Collab")
 
 nome = st.text_input("Nome")
 contatto = st.text_input("Contatto (Instagram, email, ecc)")
@@ -73,5 +73,5 @@ st.subheader("💬 Invia un feedback")
 feedback = st.text_area("Scrivi qui il tuo feedback")
 
 if st.button("Invia feedback"):
-    supabase.table("feedback").insert({"messaggio": feedback}).execute()
+    supabase.table("feedback").insert({"messaggio": feedback,"nome":nome}).execute()
     st.success("Feedback inviato!")
