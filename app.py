@@ -41,7 +41,7 @@ if response.data:
     current_user = response.data[-1]
 
     st.subheader("🔎 Trova collaboratori")
-
+    ricerca_nome = st.text_input("Cerca per nome")
     filtro_ruolo = st.selectbox(
         "Ruolo",
         ["tutti", "produttore", "cantante"]
