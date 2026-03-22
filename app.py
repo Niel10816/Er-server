@@ -70,7 +70,7 @@ if response.data:
 
         st.divider()
 
-st.subheader("💬 Invia un feedback")
+st.subheader("Feedback anonimo")
 
 feedback = st.text_area("Scrivi qui il tuo feedback")
 
