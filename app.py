@@ -1,11 +1,12 @@
 import streamlit as st
 from supabase import create_client
 import time
+import requests
 
 # --- Config Supabase ---
 SUPABASE_URL = "https://hcyuowvrrjccmvcgebaj.supabase.co"
 SUPABASE_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImhjeXVvd3ZycmpjY212Y2dlYmFqIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzM3NjExOTYsImV4cCI6MjA4OTMzNzE5Nn0.rpMn8jxHagUJsOLjJXW79oV5ogUnGhxv-kr9TGWhj98"
-SUPABASE_PROJECT_ID = "hcyuowvrrjccmvcgebaj"  # serve per URL diretto
+SUPABASE_PROJECT_ID = "hcyuowvrrjccmvcgebaj"  # per URL pubblico diretto
 supabase = create_client(SUPABASE_URL, SUPABASE_KEY)
 
 st.title("Beginner Collab")
@@ -78,10 +79,17 @@ if response.data:
         st.write(f"👤 {u['nome']} - {u['ruolo']}")
         st.write(f"📩 Contatto: {u.get('contatto', 'Non disponibile')}")
 
-        # Mostra tutti gli audio dell'utente
+        # Mostra tutti gli audio dell'utente in modo sicuro
         if u.get("audio_url"):
             for url in u["audio_url"]:
-                st.audio(url)  # URL pubblico diretto permanente
+                try:
+                    r = requests.get(url)
+                    if r.status_code == 200:
+                        st.audio(r.content, format="audio/mp3")
+                    else:
+                        st.write("Audio non disponibile")
+                except Exception as e:
+                    st.write(f"Errore nel caricare audio: {e}")
 
         st.divider()
 
