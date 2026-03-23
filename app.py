@@ -5,7 +5,6 @@ import time
 # --- Config Supabase ---
 SUPABASE_URL = "https://hcyuowvrrjccmvcgebaj.supabase.co"
 SUPABASE_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImhjeXVvd3ZycmpjY212Y2dlYmFqIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzM3NjExOTYsImV4cCI6MjA4OTMzNzE5Nn0.rpMn8jxHagUJsOLjJXW79oV5ogUnGhxv-kr9TGWhj98"
-SUPABASE_PROJECT_ID = "hcyuowvrrjccmvcgebaj"  # serve per URL pubblico diretto
 supabase = create_client(SUPABASE_URL, SUPABASE_KEY)
 
 st.title("Beginner Collab")
@@ -38,10 +37,12 @@ if st.button("Salva il profilo"):
                 file_options={"content_type": "audio/mpeg"}
             )
 
-            # Salviamo solo il nome del file nel DB
-            audio_urls.append(nome_file)
+            # Ottieni URL pubblico permanente
+            public_url_response = supabase.storage.from_("audio").get_public_url(nome_file)
+            if public_url_response and "publicUrl" in public_url_response:
+                audio_urls.append(public_url_response["publicUrl"])
 
-    # Salva array di nomi file nel DB
+    # Salva array di URL permanenti nel DB
     supabase.table("utenti").insert({
         "nome": nome,
         "ruolo": ruolo,
@@ -79,9 +80,8 @@ if response.data:
 
         # Mostra tutti gli audio dell'utente
         if u.get("audio_url"):
-            for nome_file in u["audio_url"]:
-                public_url = f"https://{SUPABASE_PROJECT_ID}.supabase.co/storage/v1/object/public/audio/{nome_file}"
-                st.audio(public_url)  # URL pubblico permanente
+            for url in u["audio_url"]:
+                st.audio(url)  # URL pubblico permanente
 
         st.divider()
 
