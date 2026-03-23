@@ -3,9 +3,9 @@ from supabase import create_client
 import time
 
 # --- Config Supabase ---
-SUPABASE_URL = "https://hcyuowvrrjccmvcgebaj.supabase.co"
-SUPABASE_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImhjeXVvd3ZycmpjY212Y2dlYmFqIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzM3NjExOTYsImV4cCI6MjA4OTMzNzE5Nn0.rpMn8jxHagUJsOLjJXW79oV5ogUnGhxv-kr9TGWhj98"
-supabase = create_client(SUPABASE_URL, SUPABASE_KEY)
+url = "https://hcyuowvrrjccmvcgebaj.supabase.co"
+key = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImhjeXVvd3ZycmpjY212Y2dlYmFqIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzM3NjExOTYsImV4cCI6MjA4OTMzNzE5Nn0.rpMn8jxHagUJsOLjJXW79oV5ogUnGhxv-kr9TGWhj98"
+supabase = create_client(url, key)
 
 st.title("Beginner Collab")
 
@@ -14,35 +14,36 @@ nome = st.text_input("Nome")
 contatto = st.text_input("Contatto (Instagram, email, ecc)")
 ruolo = st.selectbox("Chi sei?", ["produttore", "cantante"])
 
-# Upload multiplo
 audio_files = st.file_uploader(
-    "Carica uno o più audio (mp3)",
-    type=["mp3"],
+    "Carica uno o più audio (mp3)", 
+    type=["mp3"], 
     accept_multiple_files=True
 )
 
 # --- Salvataggio profilo ---
 if st.button("Salva il profilo"):
+
     audio_urls = []
 
     if audio_files:
         for audio_file in audio_files:
             file_bytes = audio_file.read()
+            # Nome unico: nome + timestamp + filename originale
             nome_file = f"{nome.lower().replace(' ', '_')}_{int(time.time())}_{audio_file.name}"
-
+            
             # Upload con Content-Type corretto
             supabase.storage.from_("audio").upload(
-                nome_file,
-                file_bytes,
+                nome_file, 
+                file_bytes, 
                 file_options={"content_type": "audio/mpeg"}
             )
+            
+            # Genera signed URL valido 1 ora
+            signed_file = supabase.storage.from_("audio").create_signed_url(nome_file, 3600)
+            if signed_file and "signedUrl" in signed_file:
+                audio_urls.append(signed_file["signedUrl"])
 
-            # Ottieni URL pubblico permanente
-            public_url_response = supabase.storage.from_("audio").get_public_url(nome_file)
-            if public_url_response and "publicUrl" in public_url_response:
-                audio_urls.append(public_url_response["publicUrl"])
-
-    # Salva array di URL permanenti nel DB
+    # Inserisce nel DB come array di URL
     supabase.table("utenti").insert({
         "nome": nome,
         "ruolo": ruolo,
@@ -51,7 +52,7 @@ if st.button("Salva il profilo"):
     }).execute()
 
     st.success("Profilo salvato!")
-    st.cache_data.clear()
+    st.cache_data.clear()  # aggiorna subito i dati in cache
 
 # --- Funzione per leggere utenti dal DB ---
 @st.cache_data
@@ -81,7 +82,12 @@ if response.data:
         # Mostra tutti gli audio dell'utente
         if u.get("audio_url"):
             for url in u["audio_url"]:
-                st.audio(url)  # URL pubblico permanente
+                nome_file = url.split("/")[-1].split("?")[0]
+                signed_url = supabase.storage.from_("audio").create_signed_url(nome_file, 3600)
+                if signed_url and "signedUrl" in signed_url:
+                    st.audio(signed_url["signedUrl"])
+                else:
+                    st.write("Audio non disponibile")
 
         st.divider()
 
