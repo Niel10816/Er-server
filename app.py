@@ -9,50 +9,59 @@ supabase = create_client(url, key)
 
 st.title("Beginner Collab")
 
+# --- Input utente ---
 nome = st.text_input("Nome")
 contatto = st.text_input("Contatto (Instagram, email, ecc)")
 ruolo = st.selectbox("Chi sei?", ["produttore", "cantante"])
 
-audio_file = st.file_uploader("Carica un audio (mp3)", type=["mp3"])
+audio_files = st.file_uploader(
+    "Carica uno o più audio (mp3)", 
+    type=["mp3"], 
+    accept_multiple_files=True
+)
 
+# --- Salvataggio profilo ---
 if st.button("Salva il profilo"):
 
-    audio_url = None
+    audio_urls = []
 
-    if audio_file is not None:
-        file_bytes = audio_file.read()
-        nome_file = f"{nome.lower().replace(' ', '_')}_{int(time.time())}.mp3"
+    if audio_files:
+        for audio_file in audio_files:
+            file_bytes = audio_file.read()
+            nome_file = f"{nome.lower().replace(' ', '_')}_{int(time.time())}_{audio_file.name}"
+            
+            # Upload con Content-Type corretto
+            supabase.storage.from_("audio").upload(
+                nome_file, 
+                file_bytes, 
+                file_options={"content_type": "audio/mpeg"}
+            )
+            
+            # Genera URL pubblico permanente
+            public_url = supabase.storage.from_("audio").get_public_url(nome_file)
+            if public_url and "publicUrl" in public_url:
+                audio_urls.append(public_url["publicUrl"])
 
-        # Upload
-        supabase.storage.from_("audio").upload(nome_file, file_bytes, file_options={"content_type":"audio/mpeg"})
-
-        # Genera signed URL valido 1 ora
-        signed_file = supabase.storage.from_("audio").create_signed_url(nome_file, 3600)
-        if signed_file and "signedUrl" in signed_file:
-            audio_url = signed_file["signedUrl"]
-
-    # Salva nel DB
+    # Salva array di URL permanenti nel DB
     supabase.table("utenti").insert({
         "nome": nome,
         "ruolo": ruolo,
         "contatto": contatto,
-        "audio_url": audio_url
+        "audio_url": audio_urls
     }).execute()
 
     st.success("Profilo salvato!")
-    st.cache_data.clear()  # 🔥 aggiorna subito i dati
+    st.cache_data.clear()  # aggiorna subito i dati in cache
 
-# ✅ CACHE QUI
+# --- Funzione per leggere utenti dal DB ---
 @st.cache_data
 def get_utenti():
     return supabase.table("utenti").select("*").execute()
 
-# --- Mostra collaboratori ---
+# --- Visualizzazione collaboratori ---
 response = get_utenti()
 
 if response.data:
-    current_user = response.data[-1]
-
     st.subheader("🔎 Trova collaboratori")
     ricerca_nome = st.text_input("Cerca per nome")
     filtro_ruolo = st.selectbox("Ruolo", ["tutti", "produttore", "cantante"])
@@ -60,7 +69,7 @@ if response.data:
     st.subheader("🎧 Artisti disponibili")
 
     for u in response.data:
-        
+        # Filtri
         if ricerca_nome and ricerca_nome.lower() not in u["nome"].lower():
             continue
         if filtro_ruolo != "tutti" and u["ruolo"] != filtro_ruolo:
@@ -69,14 +78,10 @@ if response.data:
         st.write(f"👤 {u['nome']} - {u['ruolo']}")
         st.write(f"📩 Contatto: {u.get('contatto', 'Non disponibile')}")
 
+        # Mostra tutti gli audio dell'utente
         if u.get("audio_url"):
-            # ⚡ Genera signed URL temporaneo per lo streaming
-            nome_file = u["audio_url"].split("/")[-1].split("?")[0]  # ricava il file dal nome
-            signed_url = supabase.storage.from_("audio").create_signed_url(nome_file, 3600)
-            if signed_url and "signedUrl" in signed_url:
-                st.audio(signed_url["signedUrl"])
-            else:
-                st.write("Audio non disponibile")
+            for url in u["audio_url"]:
+                st.audio(url)  # URL pubblico permanente
 
         st.divider()
 
@@ -85,5 +90,9 @@ st.subheader("💬 Invia un feedback")
 feedback = st.text_area("Scrivi qui il tuo feedback")
 
 if st.button("Invia feedback"):
-    supabase.table("feedback").insert({"messaggio": feedback,"nome":nome}).execute()
+    supabase.table("feedback").insert({
+        "messaggio": feedback,
+        "nome": nome
+    }).execute()
     st.success("Feedback inviato!")
+
