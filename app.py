@@ -1,6 +1,7 @@
 import streamlit as st
 from supabase import create_client
 import time
+import requests  # necessario per scaricare audio dai link
 
 # --- Config Supabase ---
 url = "https://hcyuowvrrjccmvcgebaj.supabase.co"
@@ -45,7 +46,7 @@ if st.button("Salva il profilo"):
                 file_options={"content_type": "audio/mpeg"}
             )
 
-            # --- Cambiamento: URL pubblico permanente ---
+            # Ottieni URL pubblico permanente
             public_file = supabase.storage.from_("audio").get_public_url(nome_file)
             if public_file and "publicUrl" in public_file:
                 audio_urls.append(public_file["publicUrl"])
@@ -87,10 +88,15 @@ if response.data:
         st.write(f"👤 {u['nome']} - {u['ruolo']}")
         st.write(f"📩 Contatto: {u.get('contatto', 'Non disponibile')}")
 
-        # Riproduzione multipla degli audio (pubblici)
+        # Riproduzione multipla degli audio (scaricati e passati come bytes)
         if u.get("audio_url"):
             for url in u["audio_url"]:
-                st.audio(url)  # Ora URL pubblico permanente
+                try:
+                    r = requests.get(url)
+                    r.raise_for_status()  # errore se file non raggiungibile
+                    st.audio(r.content, format="audio/mp3")
+                except Exception as e:
+                    st.error(f"Impossibile caricare {url}: {e}")
 
         st.divider()
 
