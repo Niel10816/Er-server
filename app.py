@@ -24,9 +24,6 @@ audio_files = st.file_uploader(
 # --- Salvataggio profilo ---
 if st.button("Salva il profilo"):
 
-    if not audio_files:
-        st.warning("Devi caricare almeno un audio!")
-    else:
         audio_urls = []
 
         for audio_file in audio_files:
