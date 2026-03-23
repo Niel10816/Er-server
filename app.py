@@ -1,12 +1,10 @@
 import streamlit as st
 from supabase import create_client
 import time
-import requests
 
 # --- Config Supabase ---
 SUPABASE_URL = "https://hcyuowvrrjccmvcgebaj.supabase.co"
 SUPABASE_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImhjeXVvd3ZycmpjY212Y2dlYmFqIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzM3NjExOTYsImV4cCI6MjA4OTMzNzE5Nn0.rpMn8jxHagUJsOLjJXW79oV5ogUnGhxv-kr9TGWhj98"
-SUPABASE_PROJECT_ID = "hcyuowvrrjccmvcgebaj"  # per URL pubblico diretto
 supabase = create_client(SUPABASE_URL, SUPABASE_KEY)
 
 st.title("Beginner Collab")
@@ -17,14 +15,13 @@ contatto = st.text_input("Contatto (Instagram, email, ecc)")
 ruolo = st.selectbox("Chi sei?", ["produttore", "cantante"])
 
 audio_files = st.file_uploader(
-    "Carica uno o più audio (mp3)", 
-    type=["mp3"], 
+    "Carica uno o più audio (mp3)",
+    type=["mp3"],
     accept_multiple_files=True
 )
 
 # --- Salvataggio profilo ---
 if st.button("Salva il profilo"):
-
     audio_urls = []
 
     if audio_files:
@@ -34,14 +31,15 @@ if st.button("Salva il profilo"):
 
             # Upload con Content-Type corretto
             supabase.storage.from_("audio").upload(
-                nome_file, 
-                file_bytes, 
+                nome_file,
+                file_bytes,
                 file_options={"content_type": "audio/mpeg"}
             )
 
-            # URL pubblico diretto permanente
-            public_url = f"https://{SUPABASE_PROJECT_ID}.supabase.co/storage/v1/object/public/audio/{nome_file}"
-            audio_urls.append(public_url)
+            # Ottieni URL pubblico direttamente da Supabase
+            public_url_response = supabase.storage.from_("audio").get_public_url(nome_file)
+            if public_url_response and "publicUrl" in public_url_response:
+                audio_urls.append(public_url_response["publicUrl"])
 
     # Salva array di URL permanenti nel DB
     supabase.table("utenti").insert({
@@ -52,7 +50,7 @@ if st.button("Salva il profilo"):
     }).execute()
 
     st.success("Profilo salvato!")
-    st.cache_data.clear()  # aggiorna subito i dati in cache
+    st.cache_data.clear()
 
 # --- Funzione per leggere utenti dal DB ---
 @st.cache_data
@@ -79,17 +77,10 @@ if response.data:
         st.write(f"👤 {u['nome']} - {u['ruolo']}")
         st.write(f"📩 Contatto: {u.get('contatto', 'Non disponibile')}")
 
-        # Mostra tutti gli audio dell'utente in modo sicuro
+        # Mostra tutti gli audio dell'utente
         if u.get("audio_url"):
             for url in u["audio_url"]:
-                try:
-                    r = requests.get(url)
-                    if r.status_code == 200:
-                        st.audio(r.content, format="audio/mp3")
-                    else:
-                        st.write("Audio non disponibile")
-                except Exception as e:
-                    st.write(f"Errore nel caricare audio: {e}")
+                st.audio(url)  # URL pubblico permanente direttamente leggibile da Streamlit
 
         st.divider()
 
