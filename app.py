@@ -24,6 +24,9 @@ audio_files = st.file_uploader(
 # --- Salvataggio profilo ---
 if st.button("Salva il profilo"):
 
+    if not audio_files:
+        st.warning("Devi caricare almeno un audio!")
+    else:
         audio_urls = []
 
         for audio_file in audio_files:
@@ -42,13 +45,13 @@ if st.button("Salva il profilo"):
                 file_options={"content_type": "audio/mpeg"}
             )
 
-            # Genera signed URL temporaneo (1 ora)
-            signed_file = supabase.storage.from_("audio").create_signed_url(nome_file, 3600)
-            if signed_file and "signedUrl" in signed_file:
-                audio_urls.append(signed_file["signedUrl"])
+            # --- Cambiamento: URL pubblico permanente ---
+            public_file = supabase.storage.from_("audio").get_public_url(nome_file)
+            if public_file and "publicUrl" in public_file:
+                audio_urls.append(public_file["publicUrl"])
 
         if audio_urls:
-            # Inserisce nel DB come array di URL temporanei
+            # Inserisce nel DB come array di URL pubblici permanenti
             supabase.table("utenti").insert({
                 "nome": nome,
                 "ruolo": ruolo,
@@ -84,10 +87,10 @@ if response.data:
         st.write(f"👤 {u['nome']} - {u['ruolo']}")
         st.write(f"📩 Contatto: {u.get('contatto', 'Non disponibile')}")
 
-        # Riproduzione multipla degli audio (temporanei)
+        # Riproduzione multipla degli audio (pubblici)
         if u.get("audio_url"):
             for url in u["audio_url"]:
-                st.audio(url)
+                st.audio(url)  # Ora URL pubblico permanente
 
         st.divider()
 
