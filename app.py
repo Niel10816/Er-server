@@ -38,7 +38,7 @@ if st.button("Salva il profilo"):
             )
             
             # Genera URL pubblico permanente
-            public_url = supabase.storage.from_("audio").get_public_url(nome_file)
+            public_url = f"https://{SUPABASE_PROJECT_ID}.supabase.co/storage/v1/object/public/audio/{nome_file}"
             if public_url and "publicUrl" in public_url:
                 audio_urls.append(public_url["publicUrl"])
 
