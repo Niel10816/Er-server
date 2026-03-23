@@ -70,7 +70,7 @@ if response.data:
         st.write(f"📩 Contatto: {u.get('contatto', 'Non disponibile')}")
 
         if u.get("audio_url"):
-            st.audio(u["audio_url"])
+            st.audio(u["audio_url"], format="audio/mp3")
 
         st.divider()
 
