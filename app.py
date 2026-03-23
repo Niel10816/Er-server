@@ -3,9 +3,10 @@ from supabase import create_client
 import time
 
 # --- Config Supabase ---
-url = "https://hcyuowvrrjccmvcgebaj.supabase.co"
-key = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImhjeXVvd3ZycmpjY212Y2dlYmFqIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzM3NjExOTYsImV4cCI6MjA4OTMzNzE5Nn0.rpMn8jxHagUJsOLjJXW79oV5ogUnGhxv-kr9TGWhj98"
-supabase = create_client(url, key)
+SUPABASE_URL = "https://hcyuowvrrjccmvcgebaj.supabase.co"
+SUPABASE_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImhjeXVvd3ZycmpjY212Y2dlYmFqIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzM3NjExOTYsImV4cCI6MjA4OTMzNzE5Nn0.rpMn8jxHagUJsOLjJXW79oV5ogUnGhxv-kr9TGWhj98"
+SUPABASE_PROJECT_ID = "hcyuowvrrjccmvcgebaj"  # serve per URL diretto
+supabase = create_client(SUPABASE_URL, SUPABASE_KEY)
 
 st.title("Beginner Collab")
 
@@ -29,18 +30,17 @@ if st.button("Salva il profilo"):
         for audio_file in audio_files:
             file_bytes = audio_file.read()
             nome_file = f"{nome.lower().replace(' ', '_')}_{int(time.time())}_{audio_file.name}"
-            
+
             # Upload con Content-Type corretto
             supabase.storage.from_("audio").upload(
                 nome_file, 
                 file_bytes, 
                 file_options={"content_type": "audio/mpeg"}
             )
-            
-            # Genera URL pubblico permanente
+
+            # URL pubblico diretto permanente
             public_url = f"https://{SUPABASE_PROJECT_ID}.supabase.co/storage/v1/object/public/audio/{nome_file}"
-            if public_url and "publicUrl" in public_url:
-                audio_urls.append(public_url["publicUrl"])
+            audio_urls.append(public_url)
 
     # Salva array di URL permanenti nel DB
     supabase.table("utenti").insert({
@@ -81,7 +81,7 @@ if response.data:
         # Mostra tutti gli audio dell'utente
         if u.get("audio_url"):
             for url in u["audio_url"]:
-                st.audio(url)  # URL pubblico permanente
+                st.audio(url)  # URL pubblico diretto permanente
 
         st.divider()
 
@@ -95,4 +95,3 @@ if st.button("Invia feedback"):
         "nome": nome
     }).execute()
     st.success("Feedback inviato!")
-
