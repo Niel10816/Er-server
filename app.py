@@ -40,9 +40,15 @@ if st.button("Salva il profilo"):
     }).execute()
 
     st.success("Profilo salvato!")
+    st.cache_data.clear()  # 🔥 aggiorna subito i dati
+
+# ✅ CACHE QUI
+@st.cache_data
+def get_utenti():
+    return supabase.table("utenti").select("*").execute()
 
 # --- Mostra collaboratori ---
-response = supabase.table("utenti").select("*").execute()
+response = get_utenti()
 
 if response.data:
     current_user = response.data[-1]
