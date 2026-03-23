@@ -3,10 +3,9 @@ from supabase import create_client
 import time
 
 # --- Config Supabase ---
-SUPABASE_URL = "https://hcyuowvrrjccmvcgebaj.supabase.co"
-SUPABASE_KEY = "LA_TUA_KEY"
-SUPABASE_PROJECT_ID = "hcyuowvrrjccmvcgebaj"
-supabase = create_client(SUPABASE_URL, SUPABASE_KEY)
+url = "https://hcyuowvrrjccmvcgebaj.supabase.co"
+key = "LA_TUA_KEY"
+supabase = create_client(url, key)
 
 st.title("Beginner Collab")
 
@@ -28,33 +27,36 @@ if st.button("Salva il profilo"):
     if not audio_files:
         st.warning("Devi caricare almeno un audio!")
     else:
-        audio_files_names = []
+        audio_urls = []
 
         for audio_file in audio_files:
-            # Leggi il file una sola volta
             file_bytes = audio_file.read()
             if len(file_bytes) == 0:
-                st.error(f"Errore: {audio_file.name} è vuoto!")
+                st.error(f"{audio_file.name} è vuoto!")
                 continue
 
             # Nome unico
             nome_file = f"{nome.lower().replace(' ', '_')}_{int(time.time())}_{audio_file.name}"
 
-            # Upload corretto con content-type
+            # Upload con Content-Type corretto
             supabase.storage.from_("audio").upload(
                 nome_file,
                 file_bytes,
-                file_options={"content_type":"audio/mpeg"}
+                file_options={"content_type": "audio/mpeg"}
             )
 
-            audio_files_names.append(nome_file)
+            # Genera signed URL temporaneo (1 ora)
+            signed_file = supabase.storage.from_("audio").create_signed_url(nome_file, 3600)
+            if signed_file and "signedUrl" in signed_file:
+                audio_urls.append(signed_file["signedUrl"])
 
-        if audio_files_names:
+        if audio_urls:
+            # Inserisce nel DB come array di URL temporanei
             supabase.table("utenti").insert({
                 "nome": nome,
                 "ruolo": ruolo,
                 "contatto": contatto,
-                "audio_url": audio_files_names
+                "audio_url": audio_urls
             }).execute()
 
             st.success("Profilo salvato!")
@@ -85,11 +87,10 @@ if response.data:
         st.write(f"👤 {u['nome']} - {u['ruolo']}")
         st.write(f"📩 Contatto: {u.get('contatto', 'Non disponibile')}")
 
-        # Riproduzione audio con URL pubblico permanente
+        # Riproduzione multipla degli audio (temporanei)
         if u.get("audio_url"):
-            for nome_file in u["audio_url"]:
-                public_url = f"https://{SUPABASE_PROJECT_ID}.supabase.co/storage/v1/object/public/audio/{nome_file}"
-                st.audio(public_url)
+            for url in u["audio_url"]:
+                st.audio(url)
 
         st.divider()
 
