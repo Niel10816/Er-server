@@ -24,7 +24,7 @@ if st.button("Salva il profilo"):
         nome_file = f"{nome.lower().replace(' ', '_')}_{int(time.time())}.mp3"
 
         # Upload
-        supabase.storage.from_("audio").upload(nome_file, file_bytes)
+        supabase.storage.from_("audio").upload(nome_file, file_bytes, file_options={"content_type":"audio/mpeg"})
 
         # Genera signed URL valido 1 ora
         signed_file = supabase.storage.from_("audio").create_signed_url(nome_file, 3600)
@@ -70,7 +70,13 @@ if response.data:
         st.write(f"📩 Contatto: {u.get('contatto', 'Non disponibile')}")
 
         if u.get("audio_url"):
-            st.audio(u["audio_url"], format="audio/mp3")
+            # ⚡ Genera signed URL temporaneo per lo streaming
+            nome_file = u["audio_url"].split("/")[-1].split("?")[0]  # ricava il file dal nome
+            signed_url = supabase.storage.from_("audio").create_signed_url(nome_file, 3600)
+            if signed_url and "signedUrl" in signed_url:
+                st.audio(signed_url["signedUrl"])
+            else:
+                st.write("Audio non disponibile")
 
         st.divider()
 
@@ -81,21 +87,3 @@ feedback = st.text_area("Scrivi qui il tuo feedback")
 if st.button("Invia feedback"):
     supabase.table("feedback").insert({"messaggio": feedback,"nome":nome}).execute()
     st.success("Feedback inviato!")
-
-
-if st.button("Sistema audio vecchi"):
-
-    utenti = supabase.table("utenti").select("*").execute()
-
-    for u in utenti.data:
-        if u.get("audio_url"):
-
-            nome_file = u["audio_url"].split("/")[-1].split("?")[0]
-
-            nuovo_url = supabase.storage.from_("audio").get_public_url(nome_file)
-
-            supabase.table("utenti").update({
-                "audio_url": nuovo_url
-            }).eq("id", u["id"]).execute()
-
-    st.success("Audio sistemati!")
