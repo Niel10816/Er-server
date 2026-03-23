@@ -3,10 +3,10 @@ from supabase import create_client
 import time
 
 # --- Config Supabase ---
-url = "https://hcyuowvrrjccmvcgebaj.supabase.co"
-key = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImhjeXVvd3ZycmpjY212Y2dlYmFqIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzM3NjExOTYsImV4cCI6MjA4OTMzNzE5Nn0.rpMn8jxHagUJsOLjJXW79oV5ogUnGhxv-kr9TGWhj98"
-supabase = create_client(url, key)
-SUPABASE_PROJECT_ID = "hcyuowvrrjccmvcgebaj"  # serve per URL pubblico permanente
+SUPABASE_URL = "https://hcyuowvrrjccmvcgebaj.supabase.co"
+SUPABASE_KEY = "LA_TUA_KEY"
+SUPABASE_PROJECT_ID = "hcyuowvrrjccmvcgebaj"
+supabase = create_client(SUPABASE_URL, SUPABASE_KEY)
 
 st.title("Beginner Collab")
 
@@ -15,6 +15,7 @@ nome = st.text_input("Nome")
 contatto = st.text_input("Contatto (Instagram, email, ecc)")
 ruolo = st.selectbox("Chi sei?", ["produttore", "cantante"])
 
+# Upload multiplo
 audio_files = st.file_uploader(
     "Carica uno o più audio (mp3)",
     type=["mp3"],
@@ -24,33 +25,41 @@ audio_files = st.file_uploader(
 # --- Salvataggio profilo ---
 if st.button("Salva il profilo"):
 
-    audio_files_names = []
+    if not audio_files:
+        st.warning("Devi caricare almeno un audio!")
+    else:
+        audio_files_names = []
 
-    if audio_files:
         for audio_file in audio_files:
+            # Leggi il file una sola volta
             file_bytes = audio_file.read()
+            if len(file_bytes) == 0:
+                st.error(f"Errore: {audio_file.name} è vuoto!")
+                continue
+
+            # Nome unico
             nome_file = f"{nome.lower().replace(' ', '_')}_{int(time.time())}_{audio_file.name}"
 
-            # Upload con Content-Type corretto
+            # Upload corretto con content-type
             supabase.storage.from_("audio").upload(
                 nome_file,
                 file_bytes,
-                file_options={"content_type": "audio/mpeg"}
+                file_options={"content_type":"audio/mpeg"}
             )
 
-            # Salviamo solo il nome del file (non signed URL temporaneo)
             audio_files_names.append(nome_file)
 
-    # Inserisce nel DB come array di nomi file
-    supabase.table("utenti").insert({
-        "nome": nome,
-        "ruolo": ruolo,
-        "contatto": contatto,
-        "audio_url": audio_files_names
-    }).execute()
+        if audio_files_names:
+            supabase.table("utenti").insert({
+                "nome": nome,
+                "ruolo": ruolo,
+                "contatto": contatto,
+                "audio_url": audio_files_names
+            }).execute()
 
-    st.success("Profilo salvato!")
-    st.cache_data.clear()
+            st.success("Profilo salvato!")
+
+        st.cache_data.clear()
 
 # --- Funzione per leggere utenti dal DB ---
 @st.cache_data
@@ -68,7 +77,6 @@ if response.data:
     st.subheader("🎧 Artisti disponibili")
 
     for u in response.data:
-        # Filtri
         if ricerca_nome and ricerca_nome.lower() not in u["nome"].lower():
             continue
         if filtro_ruolo != "tutti" and u["ruolo"] != filtro_ruolo:
@@ -77,12 +85,11 @@ if response.data:
         st.write(f"👤 {u['nome']} - {u['ruolo']}")
         st.write(f"📩 Contatto: {u.get('contatto', 'Non disponibile')}")
 
-        # Mostra tutti gli audio dell'utente
+        # Riproduzione audio con URL pubblico permanente
         if u.get("audio_url"):
             for nome_file in u["audio_url"]:
-                # URL pubblico permanente dal bucket
                 public_url = f"https://{SUPABASE_PROJECT_ID}.supabase.co/storage/v1/object/public/audio/{nome_file}"
-                st.audio(public_url)  # Riproduzione stabile e permanente
+                st.audio(public_url)
 
         st.divider()
 
