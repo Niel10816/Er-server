@@ -91,12 +91,7 @@ if response.data:
         # Riproduzione multipla degli audio (scaricati e passati come bytes)
         if u.get("audio_url"):
             for url in u["audio_url"]:
-                try:
-                    r = requests.get(url)
-                    r.raise_for_status()  # errore se file non raggiungibile
-                    st.audio(r.content, format="audio/mp3")
-                except Exception as e:
-                    st.error(f"Impossibile caricare {url}: {e}")
+                st.audio(url)
 
         st.divider()
 
