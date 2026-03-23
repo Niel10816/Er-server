@@ -81,3 +81,21 @@ feedback = st.text_area("Scrivi qui il tuo feedback")
 if st.button("Invia feedback"):
     supabase.table("feedback").insert({"messaggio": feedback,"nome":nome}).execute()
     st.success("Feedback inviato!")
+
+
+if st.button("Sistema audio vecchi"):
+
+    utenti = supabase.table("utenti").select("*").execute()
+
+    for u in utenti.data:
+        if u.get("audio_url"):
+
+            nome_file = u["audio_url"].split("/")[-1].split("?")[0]
+
+            nuovo_url = supabase.storage.from_("audio").get_public_url(nome_file)
+
+            supabase.table("utenti").update({
+                "audio_url": nuovo_url
+            }).eq("id", u["id"]).execute()
+
+    st.success("Audio sistemati!")
