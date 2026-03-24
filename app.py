@@ -116,7 +116,7 @@ st.divider()
 with st.expander("Cerca collaboratori", expanded=False):
     @st.cache_data(ttl=5)
     def get_utenti():
-        try: return supabase.table("utenti").select("nome, ruolo, , audio_url").execute()
+        try: return supabase.table("utenti").select("nome, ruolo, contatto, audio_url").execute()
         except: return None
 
     res = get_utenti()
