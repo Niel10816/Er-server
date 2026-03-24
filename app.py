@@ -3,119 +3,93 @@ from supabase import create_client
 import time
 
 # --- Config Supabase ---
-url = "https://hcyuowvrrjccmvcgebaj.supabase.co"
-key = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImhjeXVvd3ZycmpjY212Y2dlYmFqIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzM3NjExOTYsImV4cCI6MjA4OTMzNzE5Nn0.rpMn8jxHagUJsOLjJXW79oV5ogUnGhxv-kr9TGWhj98"  # Assicurati di inserire la tua chiave corretta qui
-supabase = create_client(url, key)
+# Sostituisci con le tue credenziali reali
+URL_SUPABASE = "https://hcyuowvrrjccmvcgebaj.supabase.co"
+KEY_SUPABASE = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImhjeXVvd3ZycmpjY212Y2dlYmFqIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzM3NjExOTYsImV4cCI6MjA4OTMzNzE5Nn0.rpMn8jxHagUJsOLjJXW79oV5ogUnGhxv-kr9TGWhj98" 
+supabase = create_client(URL_SUPABASE, KEY_SUPABASE)
 
-st.title("Beginner Collab")
+st.set_page_config(page_title="Beginner Collab", layout="centered")
+st.title("🎵 Beginner Collab")
 
 # --- Input utente ---
-nome = st.text_input("Nome")
-contatto = st.text_input("Contatto (Instagram, email, ecc)")
-ruolo = st.selectbox("Chi sei?", ["produttore", "cantante"])
+with st.expander("➕ Aggiungi il tuo profilo / Carica audio"):
+    nome = st.text_input("Nome d'arte")
+    contatto = st.text_input("Contatto (IG, Email, ecc.)")
+    ruolo = st.selectbox("Il tuo ruolo", ["produttore", "cantante"])
+    audio_files = st.file_uploader("Carica i tuoi beat o le tue voci (MP3)", type=["mp3"], accept_multiple_files=True)
 
-# Upload multiplo
-audio_files = st.file_uploader(
-    "Carica uno o più audio (mp3)",
-    type=["mp3"],
-    accept_multiple_files=True
-)
+    if st.button("Pubblica Profilo"):
+        if not nome or not audio_files:
+            st.error("Inserisci almeno il nome e un file audio!")
+        else:
+            urls_caricati = []
+            for f in audio_files:
+                # Generiamo un nome file unico per evitare sovrascritture
+                estensione = f.name.split('.')[-1]
+                nome_pulito = f"{int(time.time())}_{f.name.replace(' ', '_')}"
+                
+                try:
+                    # 1. Upload su Storage
+                    supabase.storage.from_("audio").upload(
+                        path=nome_pulito,
+                        file=f.read(),
+                        file_options={"content_type": "audio/mpeg"}
+                    )
+                    
+                    # 2. Ottieni URL Pubblico
+                    res_url = supabase.storage.from_("audio").get_public_url(nome_pulito)
+                    # Forziamo il risultato a stringa (alcune versioni tornano un oggetto)
+                    public_url = str(res_url)
+                    urls_caricati.append(public_url)
+                except Exception as e:
+                    st.error(f"Errore upload {f.name}: {e}")
 
-# --- Salvataggio profilo ---
-if st.button("Salva il profilo"):
+            if urls_caricati:
+                # 3. Salvataggio nel database
+                supabase.table("utenti").insert({
+                    "nome": nome,
+                    "ruolo": ruolo,
+                    "contatto": contatto,
+                    "audio_url": urls_caricati # Salvato come array JSON
+                }).execute()
+                
+                st.success("Profilo creato con successo!")
+                st.cache_data.clear()
+                st.rerun()
 
-    if not audio_files:
-        st.warning("Devi caricare almeno un audio!")
-    elif not nome:
-        st.warning("Inserisci il tuo nome!")
-    else:
-        audio_urls = []
+# --- Visualizzazione ---
+st.divider()
+st.subheader("🔎 Esplora Collaboratori")
 
-        for audio_file in audio_files:
-            file_bytes = audio_file.read()
-            if len(file_bytes) == 0:
-                st.error(f"{audio_file.name} è vuoto!")
-                continue
+@st.cache_data(ttl=60) # Aggiorna ogni minuto
+def carica_utenti():
+    return supabase.table("utenti").select("*").order("created_at", desc=True).execute()
 
-            # Nome unico per il file
-            nome_file = f"{nome.lower().replace(' ', '_')}_{int(time.time())}_{audio_file.name}"
+data = carica_utenti().data
 
-            try:
-                # Upload su Supabase Storage
-                supabase.storage.from_("audio").upload(
-                    path=nome_file,
-                    file=file_bytes,
-                    file_options={"content_type": "audio/mpeg"}
-                )
-
-                # Ottieni l'URL pubblico (nelle versioni recenti restituisce direttamente la stringa)
-                public_url = supabase.storage.from_("audio").get_public_url(nome_file)
-                audio_urls.append(public_url)
-            except Exception as e:
-                st.error(f"Errore durante l'upload di {audio_file.name}: {e}")
-
-        if audio_urls:
-            # Inserisce nel DB
-            supabase.table("utenti").insert({
-                "nome": nome,
-                "ruolo": ruolo,
-                "contatto": contatto,
-                "audio_url": audio_urls
-            }).execute()
-
-            st.success("Profilo salvato!")
-            st.cache_data.clear()
-            st.rerun()
-
-# --- Funzione per leggere utenti dal DB ---
-@st.cache_data
-def get_utenti():
-    return supabase.table("utenti").select("*").execute()
-
-# --- Visualizzazione collaboratori ---
-response = get_utenti()
-
-if response.data:
-    st.subheader("🔎 Trova collaboratori")
-    ricerca_nome = st.text_input("Cerca per nome")
-    filtro_ruolo = st.selectbox("Ruolo", ["tutti", "produttore", "cantante"])
-
-    st.subheader("🎧 Artisti disponibili")
-
-    for u in response.data:
-        # Filtri
-        if ricerca_nome and ricerca_nome.lower() not in u["nome"].lower():
-            continue
-        if filtro_ruolo != "tutti" and u["ruolo"] != filtro_ruolo:
-            continue
-
-        # Layout Utente
-        st.markdown(f"### 👤 {u['nome']}")
-        st.write(f"**Ruolo:** {u['ruolo'].capitalize()}")
-        st.write(f"📩 **Contatto:** {u.get('contatto', 'Non disponibile')}")
-
-        # Riproduzione audio corretta
-        urls = u.get("audio_url")
-        if urls:
-            # Se urls è salvato come stringa singola, lo trasformiamo in lista
-            lista_urls = urls if isinstance(urls, list) else [urls]
+if data:
+    for utente in data:
+        with st.container():
+            col1, col2 = st.columns([1, 2])
+            with col1:
+                st.markdown(f"**{utente['nome']}**")
+                st.caption(f"Role: {utente['ruolo']}")
+                st.caption(f"Contact: {utente['contatto']}")
             
-            for link in lista_urls:
-                # Passiamo direttamente l'URL a st.audio senza scaricare i bytes
-                st.audio(link, format="audio/mp3")
-
-        st.divider()
-
-# --- Feedback ---
-st.subheader("💬 Invia un feedback")
-feedback = st.text_area("Scrivi qui il tuo feedback")
-
-if st.button("Invia feedback"):
-    if feedback:
-        supabase.table("feedback").insert({
-            "messaggio": feedback,
-            "nome": nome if nome else "Anonimo"
-        }).execute()
-        st.success("Feedback inviato!")
-    else:
-        st.warning("Scrivi qualcosa prima di inviare!")
+            with col2:
+                links = utente.get("audio_url", [])
+                # Se per errore è una stringa singola, la mettiamo in lista
+                if isinstance(links, str):
+                    links = [links]
+                
+                if links:
+                    for l in links:
+                        # TRUCCO CRUCIALE: se l'URL contiene spazi o caratteri strani,
+                        # Streamlit potrebbe fallire. Il link deve essere una stringa pulita.
+                        if l and isinstance(l, str) and l.startswith("http"):
+                            st.audio(l)
+                else:
+                    st.write("Nessun audio disponibile")
+            st.divider()
+else:
+    st.info("Non ci sono ancora artisti. Sii il primo!")
