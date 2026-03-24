@@ -16,89 +16,100 @@ if "utente_loggato" not in st.session_state:
 
 # --- 1. PANNELLO ACCESSO / LOGIN ---
 with st.expander("🔑 Accedi per modificare il tuo profilo"):
-    nome_login = st.text_input("Inserisci il tuo Nome registrato", key="login_nome")
+    col_l1, col_l2 = st.columns(2)
+    with col_l1:
+        nome_login = st.text_input("Nome registrato", key="login_nome")
+    with col_l2:
+        pass_login = st.text_input("Password", type="password", key="login_pass")
+    
     if st.button("Accedi"):
-        res = supabase.table("utenti").select("*").eq("nome", nome_login).execute()
+        # Cerchiamo l'utente che ha quel nome E quella password
+        res = supabase.table("utenti").select("*").eq("nome", nome_login).eq("password", pass_login).execute()
+        
         if res.data:
             st.session_state.utente_loggato = res.data[0]
-            st.success(f"Bentornato {nome_login}! Ora puoi modificare i tuoi dati qui sotto.")
+            st.success(f"Bentornato {nome_login}! Modifica i tuoi dati qui sotto.")
+            st.rerun()
         else:
-            st.error("Nome non trovato. Registrati se è la prima volta.")
+            st.error("Nome o Password errati. Riprova.")
 
 # --- 2. PANNELLO CREAZIONE O MODIFICA ---
-titolo_pannello = "📝 Modifica il tuo Profilo" if st.session_state.utente_loggato else "➕ Crea il tuo profilo"
-with st.expander(titolo_pannello, expanded=st.session_state.utente_loggato is not None):
+loggato = st.session_state.utente_loggato
+titolo_pannello = "📝 Modifica il tuo Profilo" if loggato else "➕ Crea il tuo profilo"
+
+with st.expander(titolo_pannello, expanded=loggato is not None):
     
-    # Pre-compilazione se loggato
-    default_nome = st.session_state.utente_loggato["nome"] if st.session_state.utente_loggato else ""
-    default_contatto = st.session_state.utente_loggato["contatto"] if st.session_state.utente_loggato else ""
-    default_ruolo = st.session_state.utente_loggato["ruolo"] if st.session_state.utente_loggato else "produttore"
+    # Valori di default
+    d_nome = loggato["nome"] if loggato else ""
+    d_contatto = loggato["contatto"] if loggato else ""
+    d_ruolo = loggato["ruolo"] if loggato else "produttore"
     
-    nome_input = st.text_input("Nome d'arte / Nome", value=default_nome)
-    contatto_input = st.text_input("Contatto (Instagram, email, ecc)", value=default_contatto)
+    nome_input = st.text_input("Nome d'arte / Nome", value=d_nome)
+    pass_input = st.text_input("Scegli una Password", type="password", help="Ti servirà per modificare il profilo in futuro")
+    contatto_input = st.text_input("Contatto (Instagram, email, ecc)", value=d_contatto)
+    
     ruoli = ["produttore", "cantante", "spettatore"]
-    ruolo_input = st.selectbox("Chi sei?", ruoli, index=ruoli.index(default_ruolo))
+    ruolo_input = st.selectbox("Chi sei?", ruoli, index=ruoli.index(d_ruolo))
     
     audio_files = st.file_uploader(
-        "Carica nuovi audio (Aggiungerà nuovi file a quelli esistenti)",
+        "Carica audio (MP3)",
         type=["mp3"],
         accept_multiple_files=True
     )
 
-    col1, col2 = st.columns(2)
-    with col1:
-        if st.button("Salva / Aggiorna Profilo"):
-            if not nome_input:
-                st.warning("Il nome è obbligatorio!")
+    col_btn1, col_btn2 = st.columns(2)
+    
+    with col_btn1:
+        testo_bottone = "Aggiorna Profilo" if loggato else "Crea Profilo"
+        if st.button(testo_bottone):
+            if not nome_input or not pass_input:
+                st.warning("Nome e Password sono obbligatori!")
             else:
-                new_audio_urls = []
-                # Se l'utente è loggato, manteniamo i vecchi audio
-                if st.session_state.utente_loggato:
-                    new_audio_urls = st.session_state.utente_loggato.get("audio_url", [])
+                lista_audio = loggato.get("audio_url", []) if loggato else []
 
-                # Upload nuovi file se presenti
+                # Upload nuovi file
                 if audio_files:
                     for f in audio_files:
-                        nome_file_storage = f"{int(time.time())}_{f.name.replace(' ', '_')}"
+                        nome_f = f"{int(time.time())}_{f.name.replace(' ', '_')}"
                         try:
-                            supabase.storage.from_("audio").upload(nome_file_storage, f.read(), {"content_type": "audio/mpeg"})
-                            url = str(supabase.storage.from_("audio").get_public_url(nome_file_storage))
-                            new_audio_urls.append(url)
+                            supabase.storage.from_("audio").upload(nome_f, f.read(), {"content_type": "audio/mpeg"})
+                            url = str(supabase.storage.from_("audio").get_public_url(nome_f))
+                            lista_audio.append(url)
                         except: pass
 
-                dati_profilo = {
+                # Dati da inviare
+                payload = {
                     "nome": nome_input,
+                    "password": pass_input, # Salviamo la password
                     "ruolo": ruolo_input,
                     "contatto": contatto_input,
-                    "audio_url": new_audio_urls
+                    "audio_url": lista_audio
                 }
 
-                if st.session_state.utente_loggato:
-                    # UPDATE
-                    supabase.table("utenti").update(dati_profilo).eq("id", st.session_state.utente_loggato["id"]).execute()
+                if loggato:
+                    supabase.table("utenti").update(payload).eq("id", loggato["id"]).execute()
                     st.success("Profilo aggiornato!")
                 else:
-                    # INSERT (nuovo utente)
-                    supabase.table("utenti").insert(dati_profilo).execute()
+                    supabase.table("utenti").insert(payload).execute()
                     st.success("Profilo creato!")
                 
-                st.session_state.utente_loggato = None # Reset dopo il salvataggio
+                st.session_state.utente_loggato = None
                 st.cache_data.clear()
                 st.rerun()
     
-    with col2:
-        if st.session_state.utente_loggato:
+    with col_btn2:
+        if loggato:
             if st.button("Esci senza salvare"):
                 st.session_state.utente_loggato = None
                 st.rerun()
 
-# --- 3. RICERCA E VISUALIZZAZIONE (Inalterata) ---
+# --- 3. RICERCA E VISUALIZZAZIONE ---
 st.divider()
-st.subheader("🔎 Esplora la community")
+st.subheader("🔎 Community")
 
 @st.cache_data(ttl=10)
 def get_utenti():
-    try: return supabase.table("utenti").select("*").execute()
+    try: return supabase.table("utenti").select("nome, ruolo, contatto, audio_url").execute()
     except: return None
 
 response = get_utenti()
@@ -114,7 +125,7 @@ if response and response.data:
 
         with st.container():
             st.markdown(f"### 👤 {u['nome']}")
-            st.write(f"**{u['ruolo'].capitalize()}** | 📩 {u.get('contatto', 'N/A')}")
+            st.caption(f"**{u['ruolo'].upper()}** | 📩 {u.get('contatto', 'N/A')}")
             urls = u.get("audio_url", [])
             if urls:
                 for link in urls:
@@ -123,12 +134,9 @@ if response and response.data:
             st.divider()
 
 # --- 4. FEEDBACK ---
-st.subheader("💬 Invia un feedback")
-f_text = st.text_area("Suggerimenti")
-if st.button("Invia feedback"):
+st.subheader("💬 Feedback")
+f_text = st.text_area("Suggerimenti", key="feedback_area")
+if st.button("Invia"):
     if f_text:
         supabase.table("feedback").insert({"messaggio": f_text, "nome": nome_input if nome_input else "Anonimo"}).execute()
-        st.success("Inviato!")
-
-
-
+        st.success("Grazie!")
