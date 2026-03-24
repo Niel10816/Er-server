@@ -8,14 +8,14 @@ KEY_SUPABASE = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJ
 supabase = create_client(URL_SUPABASE, KEY_SUPABASE)
 
 st.set_page_config(page_title="Beginner Collab", layout="centered")
-st.title("🎵 Beginner Collab")
+st.title("Beginner Collab")
 
 # Inizializzazione session state
 if "utente_loggato" not in st.session_state:
     st.session_state.utente_loggato = None
 
 # --- 1. PANNELLO ACCESSO / LOGIN ---
-with st.expander("🔑 Accedi per modificare il tuo profilo"):
+with st.expander("Accedi"):
     col_l1, col_l2 = st.columns(2)
     with col_l1:
         nome_login = st.text_input("Nome registrato", key="login_nome")
@@ -33,14 +33,13 @@ with st.expander("🔑 Accedi per modificare il tuo profilo"):
 
 # --- 2. PANNELLO CREAZIONE O MODIFICA ---
 loggato = st.session_state.utente_loggato
-titolo_pannello = "📝 Modifica il tuo Profilo" if loggato else "➕ Crea il tuo profilo"
+titolo_pannello = "Modifica il tuo Profilo" if loggato else "Registrati"
 
 with st.expander(titolo_pannello, expanded=loggato is not None):
     
     d_nome = loggato["nome"] if loggato else ""
     d_contatto = loggato["contatto"] if loggato else ""
     d_ruolo = loggato["ruolo"] if loggato else "produttore"
-    # Recuperiamo la lista audio attuale
     lista_audio_corrente = loggato.get("audio_url", []) if loggato else []
     
     nome_input = st.text_input("Nome d'arte / Nome", value=d_nome)
@@ -50,7 +49,6 @@ with st.expander(titolo_pannello, expanded=loggato is not None):
     ruoli = ["produttore", "cantante", "spettatore"]
     ruolo_input = st.selectbox("Chi sei?", ruoli, index=ruoli.index(d_ruolo))
     
-    # --- SEZIONE GESTIONE AUDIO ESISTENTI (Solo se loggato) ---
     if loggato and lista_audio_corrente:
         st.write("---")
         st.write("🗑️ **Gestisci i tuoi audio caricati:**")
@@ -61,10 +59,8 @@ with st.expander(titolo_pannello, expanded=loggato is not None):
             with col_a:
                 st.audio(url)
             with col_b:
-                # Se l'utente clicca, rimuoviamo l'elemento dalla lista temporanea
                 if st.button(f"Elimina", key=f"del_{i}"):
                     nuova_lista_audio.pop(i)
-                    # Aggiorniamo subito lo stato locale per riflettere la modifica
                     st.session_state.utente_loggato["audio_url"] = nuova_lista_audio
                     st.rerun()
         lista_audio_corrente = nuova_lista_audio
@@ -79,9 +75,7 @@ with st.expander(titolo_pannello, expanded=loggato is not None):
             if not nome_input or not pass_input:
                 st.warning("Nome e Password obbligatori!")
             else:
-                # Prepariamo la lista finale (esistenti rimasti + nuovi)
                 final_audio_list = lista_audio_corrente.copy()
-
                 if audio_files:
                     for f in audio_files:
                         nome_f = f"{int(time.time())}_{f.name.replace(' ', '_')}"
@@ -116,25 +110,26 @@ with st.expander(titolo_pannello, expanded=loggato is not None):
                 st.session_state.utente_loggato = None
                 st.rerun()
 
-# --- 3. VISUALIZZAZIONE COMMUNITY ---
+# --- 3. SEZIONE ESPLORA (DENTRO EXPANDER) ---
 st.divider()
-st.subheader("🔎 Esplora")
 
-@st.cache_data(ttl=5)
-def get_utenti():
-    try: return supabase.table("utenti").select("nome, ruolo, contatto, audio_url").execute()
-    except: return None
+with st.expander("Cerca collaboratori", expanded=False):
+    @st.cache_data(ttl=5)
+    def get_utenti():
+        try: return supabase.table("utenti").select("nome, ruolo, contatto, audio_url").execute()
+        except: return None
 
-res = get_utenti()
-if res and res.data:
-    c1, c2 = st.columns(2)
-    with c1: r_nome = st.text_input("Cerca nome")
-    with c2: f_ruolo = st.selectbox("Filtra ruolo", ["tutti", "produttore", "cantante", "spettatore"])
+    res = get_utenti()
+    if res and res.data:
+        c1, c2 = st.columns(2)
+        with c1: r_nome = st.text_input("Cerca nome", key="search_n")
+        with c2: f_ruolo = st.selectbox("Filtra ruolo", ["tutti", "produttore", "cantante", "spettatore"], key="search_r")
 
-    for u in res.data:
-        if r_nome and r_nome.lower() not in u["nome"].lower(): continue
-        if f_ruolo != "tutti" and u["ruolo"] != f_ruolo: continue
-        with st.container():
+        st.write("---")
+        for u in res.data:
+            if r_nome and r_nome.lower() not in u["nome"].lower(): continue
+            if f_ruolo != "tutti" and u["ruolo"] != f_ruolo: continue
+            
             st.markdown(f"### 👤 {u['nome']}")
             st.caption(f"{u['ruolo'].upper()} | 📩 {u.get('contatto', 'N/A')}")
             urls = u.get("audio_url", [])
@@ -142,12 +137,13 @@ if res and res.data:
                 if isinstance(link, str) and link.startswith("http"):
                     st.audio(link)
             st.divider()
+    else:
+        st.info("Nessun utente registrato al momento.")
 
 # --- 4. FEEDBACK ---
-st.subheader("💬 Feedback")
-f_text = st.text_area("Suggerimenti", key="f_area")
+st.subheader("Feedback")
+f_text = st.text_area("", key="f_area")
 if st.button("Invia"):
     if f_text:
         supabase.table("feedback").insert({"messaggio": f_text, "nome": nome_input if nome_input else "Anonimo"}).execute()
         st.success("Grazie!")
-
