@@ -126,7 +126,7 @@ if st.button("Invia feedback"):
         try:
             supabase.table("feedback").insert({
                 "messaggio": feedback_text,
-                "nome": nome_input if nome_input else "Anonimo"
+                "nome": nom
             }).execute()
             st.success("Feedback inviato! Grazie della collaborazione.")
         except Exception as e:
