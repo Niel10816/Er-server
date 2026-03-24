@@ -116,7 +116,7 @@ st.divider()
 with st.expander("Cerca collaboratori", expanded=False):
     @st.cache_data(ttl=5)
     def get_utenti():
-        try: return supabase.table("utenti").select("nome, ruolo, contatto, audio_url").execute()
+        try: return supabase.table("utenti").select("nome, ruolo, , audio_url").execute()
         except: return None
 
     res = get_utenti()
@@ -131,7 +131,7 @@ with st.expander("Cerca collaboratori", expanded=False):
             if f_ruolo != "tutti" and u["ruolo"] != f_ruolo: continue
             
             st.markdown(f"### 👤 {u['nome']}")
-            st.caption(f"{u['ruolo'].upper()} | "contatto", {u.get('contatto', 'N/A')}")
+            st.caption(f"{u['ruolo'].upper()} | Contatto, {u.get('contatto', 'N/A')}")
             urls = u.get("audio_url", [])
             for link in urls:
                 if isinstance(link, str) and link.startswith("http"):
