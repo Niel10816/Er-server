@@ -9,16 +9,16 @@ KEY_SUPABASE = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJ
 supabase = create_client(URL_SUPABASE, KEY_SUPABASE)
 
 st.set_page_config(page_title="Beginner Collab", layout="centered")
-st.title("🎵 Beginner Collab")
+st.title("Beginner Collab")
 
 # --- Input utente ---
-with st.expander("➕ Aggiungi il tuo profilo / Carica audio"):
-    nome = st.text_input("Nome d'arte")
+with st.expander("Accedi"):
+    nome = st.text_input("Nome")
     contatto = st.text_input("Contatto (IG, Email, ecc.)")
     ruolo = st.selectbox("Il tuo ruolo", ["produttore", "cantante"])
     audio_files = st.file_uploader("Carica i tuoi beat o le tue voci (MP3)", type=["mp3"], accept_multiple_files=True)
 
-    if st.button("Pubblica Profilo"):
+    if st.button("Aggiungi profilo"):
         if not nome or not audio_files:
             st.error("Inserisci almeno il nome e un file audio!")
         else:
