@@ -108,7 +108,8 @@ with st.expander(titolo_pannello, expanded=loggato is not None):
                     "audio_url": final_audio_list
                 }
                 st.success("Profilo salvato")
-
+                if loggato:
+                    st.success("Profilo salvato!")
            
                 
                 st.session_state.utente_loggato = None
