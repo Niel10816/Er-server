@@ -110,17 +110,24 @@ with st.expander(titolo_pannello, expanded=loggato is not None):
                     "contatto": contatto_input, 
                     "audio_url": final_audio_list,
                     "nota": nota_input if nota_input else None,
-                    "nota_timestamp": ora_iso}
-               
-                if loggato:
+                    "nota_timestamp": ora_iso
+                }
+                
+                                if loggato:
                     supabase.table("utenti").update(payload).eq("id", loggato["id"]).execute()
-                    st.success("Profilo aggiornato!")
-                st.success("Profilo salvato!")
+                    st.success("✅ Profilo aggiornato con successo!")
+                else:
+                    supabase.table("utenti").insert(payload).execute()
+                    st.success("🎉 Profilo creato! Ora puoi accedere.")
+                
+                # ASPETTA 2 SECONDI PER FAR LEGGERE IL MESSAGGIO
+                time.sleep(2) 
                 
                 st.session_state.utente_loggato = None
                 st.cache_data.clear()
                 st.rerun()
-    
+
+                    
     with col_btn2:
         if loggato and st.button("Esci"):
             st.session_state.utente_loggato = None
