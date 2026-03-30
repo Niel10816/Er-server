@@ -1,7 +1,7 @@
 import streamlit as st
 from supabase import create_client
 import time
-import datetime  # Aggiunto per gestire la scadenza della nota
+import datetime
 
 # --- Config Supabase ---
 URL_SUPABASE = "https://hcyuowvrrjccmvcgebaj.supabase.co"
@@ -37,7 +37,6 @@ loggato = st.session_state.utente_loggato
 titolo_pannello = "Modifica il tuo Profilo" if loggato else "Registrati"
 
 with st.expander(titolo_pannello, expanded=loggato is not None):
-    
     d_nome = loggato["nome"] if loggato else ""
     d_contatto = loggato["contatto"] if loggato else ""
     d_ruolo = loggato["ruolo"] if loggato else "produttore"
@@ -50,29 +49,33 @@ with st.expander(titolo_pannello, expanded=loggato is not None):
     ruoli = ["produttore", "cantante", "spettatore"]
     ruolo_input = st.selectbox("Chi sei?", ruoli, index=ruoli.index(d_ruolo))
 
-    # --- CODICE AGGIUNTO: SCRITTURA NOTA ---
+    # --- Gestione NOTA 24h ---
     if loggato:
         st.write("---")
-        nota_input = st.text_input("📝 La tua nota (24h)", max_chars=60, placeholder="Cosa hai in mente?")
-        if st.button("Pubblica Nota"):
-            ora_iso = datetime.datetime.now(datetime.timezone.utc).isoformat()
-            supabase.table("utenti").update({
-                "nota": nota_input,
-                "nota_timestamp": ora_iso
-            }).eq("id", loggato["id"]).execute()
-            st.success("Nota aggiornata!")
-            st.rerun()
-    # ---------------------------------------
-    
+        st.subheader("📝 La tua nota (24h)")
+        nota_attuale = loggato.get("nota", "")
+        nuova_nota = st.text_input("Cosa hai in mente?", value=nota_attuale, max_chars=60)
+        
+        c_n1, c_n2 = st.columns(2)
+        with c_n1:
+            if st.button("Pubblica/Aggiorna Nota"):
+                ora_iso = datetime.datetime.now(datetime.timezone.utc).isoformat()
+                supabase.table("utenti").update({"nota": nuova_nota, "nota_timestamp": ora_iso}).eq("id", loggato["id"]).execute()
+                st.success("Nota aggiornata!")
+                st.rerun()
+        with c_n2:
+            if st.button("Cancella Nota"):
+                supabase.table("utenti").update({"nota": None, "nota_timestamp": None}).eq("id", loggato["id"]).execute()
+                st.success("Nota rimossa!")
+                st.rerun()
+
     if loggato and lista_audio_corrente:
         st.write("---")
-        st.write("🗑️ **Gestisci i tuoi audio caricati:**")
+        st.write("🗑️ **Gestisci i tuoi audio:**")
         nuova_lista_audio = lista_audio_corrente.copy()
-        
         for i, url in enumerate(lista_audio_corrente):
             col_a, col_b = st.columns([3, 1])
-            with col_a:
-                st.audio(url)
+            with col_a: st.audio(url)
             with col_b:
                 if st.button(f"Elimina", key=f"del_{i}"):
                     nuova_lista_audio.pop(i)
@@ -84,7 +87,6 @@ with st.expander(titolo_pannello, expanded=loggato is not None):
     audio_files = st.file_uploader("Aggiungi nuovi audio (MP3)", type=["mp3"], accept_multiple_files=True)
 
     col_btn1, col_btn2 = st.columns(2)
-    
     with col_btn1:
         if st.button("Salva modifiche" if loggato else "Crea Profilo"):
             if not nome_input or not pass_input:
@@ -99,39 +101,27 @@ with st.expander(titolo_pannello, expanded=loggato is not None):
                             url_pub = str(supabase.storage.from_("audio").get_public_url(nome_f))
                             final_audio_list.append(url_pub)
                         except: pass
-
-                payload = {
-                    "nome": nome_input,
-                    "password": pass_input,
-                    "ruolo": ruolo_input,
-                    "contatto": contatto_input,
-                    "audio_url": final_audio_list
-                }
-
+                
+                payload = {"nome": nome_input, "password": pass_input, "ruolo": ruolo_input, "contatto": contatto_input, "audio_url": final_audio_list}
                 if loggato:
                     supabase.table("utenti").update(payload).eq("id", loggato["id"]).execute()
                     st.success("Profilo aggiornato!")
                 else:
                     supabase.table("utenti").insert(payload).execute()
                     st.success("Profilo creato!")
-                
                 st.session_state.utente_loggato = None
                 st.cache_data.clear()
                 st.rerun()
-    
     with col_btn2:
-        if loggato:
-            if st.button("Esci"):
-                st.session_state.utente_loggato = None
-                st.rerun()
+        if loggato and st.button("Esci"):
+            st.session_state.utente_loggato = None
+            st.rerun()
 
-# --- 3. SEZIONE ESPLORA (DENTRO EXPANDER) ---
+# --- 3. SEZIONE ESPLORA ---
 st.divider()
-
-with st.expander("Cerca collaboratori", expanded=False):
+with st.expander("🔎 Cerca collaboratori", expanded=False):
     @st.cache_data(ttl=5)
     def get_utenti():
-        # Aggiunte colonne nota e nota_timestamp alla select
         try: return supabase.table("utenti").select("nome, ruolo, contatto, audio_url, nota, nota_timestamp").execute()
         except: return None
 
@@ -140,41 +130,29 @@ with st.expander("Cerca collaboratori", expanded=False):
         c1, c2 = st.columns(2)
         with c1: r_nome = st.text_input("Cerca nome", key="search_n")
         with c2: f_ruolo = st.selectbox("Filtra ruolo", ["tutti", "produttore", "cantante", "spettatore"], key="search_r")
-
         st.write("---")
         for u in res.data:
             if r_nome and r_nome.lower() not in u["nome"].lower(): continue
             if f_ruolo != "tutti" and u["ruolo"] != f_ruolo: continue
             
             st.markdown(f"### 👤 {u['nome']}")
-            
-            # --- CODICE AGGIUNTO: LETTURA NOTA CON SCADENZA ---
-            n_testo = u.get("nota")
-            n_time = u.get("nota_timestamp")
+            n_testo, n_time = u.get("nota"), u.get("nota_timestamp")
             if n_testo and n_time:
                 try:
-                    t_nota = datetime.datetime.fromisoformat(n_time.replace('Z', '+00:00'))
-                    t_adesso = datetime.datetime.now(datetime.timezone.utc)
-                    if (t_adesso - t_nota).total_seconds() < 86400:
+                    if (datetime.datetime.now(datetime.timezone.utc) - datetime.datetime.fromisoformat(n_time.replace('Z', '+00:00'))).total_seconds() < 86400:
                         st.info(f"🗨️ {n_testo}")
                 except: pass
-            # -------------------------------------------------
-
+            
             st.caption(f"{u['ruolo'].upper()} | Contatto: {u.get('contatto', 'N/A')}")
-            urls = u.get("audio_url", [])
-            for link in urls:
-                if isinstance(link, str) and link.startswith("http"):
-                    st.audio(link)
+            for link in u.get("audio_url", []):
+                if isinstance(link, str) and link.startswith("http"): st.audio(link)
             st.divider()
-    else:
-        st.info("Nessun utente registrato al momento.")
+    else: st.info("Nessun utente registrato.")
 
 # --- 4. FEEDBACK ---
-st.subheader("Feedback")
+st.subheader("💬 Feedback")
 f_text = st.text_area("", key="f_area")
 if st.button("Invia"):
     if f_text:
-        supabase.table("feedback").insert({"messaggio": f_text, "nome": nome_input if 'nome_input' in locals() and nome_input else "Anonimo"}).execute()
+        supabase.table("feedback").insert({"messaggio": f_text, "nome": nome_input if 'nome_input' in locals() else "Anonimo"}).execute()
         st.success("Grazie!")
-
-
