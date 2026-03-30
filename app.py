@@ -109,10 +109,7 @@ with st.expander(titolo_pannello, expanded=loggato is not None):
                 }
                 st.success("Profilo salvato")
 
-                if loggato:
-                    supabase.table("utenti").update(payload).eq("id", loggato["id"]).execute()
-                    st.success("Profilo aggiornato!")
-                
+           
                 
                 st.session_state.utente_loggato = None
                 st.cache_data.clear()
