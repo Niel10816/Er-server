@@ -107,7 +107,7 @@ with st.expander(titolo_pannello, expanded=loggato is not None):
                     "contatto": contatto_input,
                     "audio_url": final_audio_list
                 }
-                st.succes("Profilo salvato")
+                st.success("Profilo salvato")
 
                 if loggato:
                     supabase.table("utenti").update(payload).eq("id", loggato["id"]).execute()
