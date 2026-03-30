@@ -113,13 +113,13 @@ with st.expander(titolo_pannello, expanded=loggato is not None):
                     "nota_timestamp": ora_iso}
                 if loggato:
                     supabase.table("utenti").update(payload).eq("id", loggato["id"]).execute()
-                    st.success("✅ Profilo aggiornato con successo!")
+                    st.success("Profilo aggiornato!")
                 else:
                     supabase.table("utenti").insert(payload).execute()
-                    st.success("🎉 Profilo creato! Ora puoi accedere.")
+                    st.success("Profilo creato!")
                 
                 # ASPETTA 2 SECONDI PER FAR LEGGERE IL MESSAGGIO
-                time.sleep(2) 
+                time.sleep(5) 
                 
                 st.session_state.utente_loggato = None
                 st.cache_data.clear()
