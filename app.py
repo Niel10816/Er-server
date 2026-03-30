@@ -112,7 +112,7 @@ with st.expander(titolo_pannello, expanded=loggato is not None):
                     "nota": nota_input if nota_input else None,
                     "nota_timestamp": ora_iso
                 }
-                
+                st.success("Profilo salvato!")
                 if loggato:
                     supabase.table("utenti").update(payload).eq("id", loggato["id"]).execute()
                     st.success("Profilo aggiornato!")
