@@ -43,7 +43,7 @@ with st.expander(titolo_pannello, expanded=loggato is not None):
     d_nota = loggato.get("nota", "") if loggato else ""
     lista_audio_corrente = loggato.get("audio_url", []) if loggato else []
     
-    nome_input = st.text_input("Nome d'arte / Nome", value=d_nome)
+    nome_input = st.text_input("Nome", value=d_nome)
     pass_input = st.text_input("Password", type="password", value=loggato["password"] if loggato else "")
     contatto_input = st.text_input("Contatto", value=d_contatto)
     
