@@ -107,7 +107,7 @@ with st.expander(titolo_pannello, expanded=loggato is not None):
                     "contatto": contatto_input,
                     "audio_url": final_audio_list
                 }
-    st.success("Profilo salvato")
+            st.success("Profilo salvato")
 
            
                 
