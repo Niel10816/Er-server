@@ -107,10 +107,13 @@ with st.expander(titolo_pannello, expanded=loggato is not None):
                     "contatto": contatto_input,
                     "audio_url": final_audio_list
                 }
-                st.success("Profilo salvato")
+
                 if loggato:
-                    st.success("Profilo salvato!")
-           
+                    supabase.table("utenti").update(payload).eq("id", loggato["id"]).execute()
+                    st.success("Profilo aggiornato!")
+                else:
+                    supabase.table("utenti").insert(payload).execute()
+                    st.success("Profilo creato!")
                 
                 st.session_state.utente_loggato = None
                 st.cache_data.clear()
@@ -173,4 +176,14 @@ if st.button("Invia"):
     if f_text:
         supabase.table("feedback").insert({"messaggio": f_text, "nome": nome_input if 'nome_input' in locals() and nome_input else "Anonimo"}).execute()
         st.success("Grazie!")
+
+
+
+
+
+
+
+
+
+________________________________
 
