@@ -114,6 +114,7 @@ with st.expander(titolo_pannello, expanded=loggato is not None):
                 if loggato:
                     supabase.table("utenti").update(payload).eq("id", loggato["id"]).execute()
                     st.success("Profilo aggiornato!")
+                    time.sleep(5) 
                 else:
                     supabase.table("utenti").insert(payload).execute()
                     st.success("Profilo creato!")
