@@ -111,11 +111,11 @@ with st.expander(titolo_pannello, expanded=loggato is not None):
                     "audio_url": final_audio_list,
                     "nota": nota_input if nota_input else None,
                     "nota_timestamp": ora_iso}
-                st.success("Profilo salvato!")
+               
                 if loggato:
                     supabase.table("utenti").update(payload).eq("id", loggato["id"]).execute()
                     st.success("Profilo aggiornato!")
-             
+                st.success("Profilo salvato!")
                 
                 st.session_state.utente_loggato = None
                 st.cache_data.clear()
