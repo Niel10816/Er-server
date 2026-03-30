@@ -40,6 +40,7 @@ with st.expander(titolo_pannello, expanded=loggato is not None):
     d_nome = loggato["nome"] if loggato else ""
     d_contatto = loggato["contatto"] if loggato else ""
     d_ruolo = loggato["ruolo"] if loggato else "produttore"
+    d_nota = loggato.get("nota", "") if loggato else ""
     lista_audio_corrente = loggato.get("audio_url", []) if loggato else []
     
     nome_input = st.text_input("Nome d'arte / Nome", value=d_nome)
@@ -49,18 +50,17 @@ with st.expander(titolo_pannello, expanded=loggato is not None):
     ruoli = ["produttore", "cantante", "spettatore"]
     ruolo_input = st.selectbox("Chi sei?", ruoli, index=ruoli.index(d_ruolo))
 
-    # --- Gestione NOTA 24h ---
+    # --- Sezione Nota (Sia per Registrazione che per Modifica) ---
+    st.write("---")
+    st.subheader("📝 Nota del Giorno (24h)")
+    nota_input = st.text_input("Cosa hai in mente? (Opzionale)", value=d_nota, max_chars=60)
+    
     if loggato:
-        st.write("---")
-        st.subheader("📝 La tua nota (24h)")
-        nota_attuale = loggato.get("nota", "")
-        nuova_nota = st.text_input("Cosa hai in mente?", value=nota_attuale, max_chars=60)
-        
         c_n1, c_n2 = st.columns(2)
         with c_n1:
-            if st.button("Pubblica/Aggiorna Nota"):
+            if st.button("Aggiorna solo Nota"):
                 ora_iso = datetime.datetime.now(datetime.timezone.utc).isoformat()
-                supabase.table("utenti").update({"nota": nuova_nota, "nota_timestamp": ora_iso}).eq("id", loggato["id"]).execute()
+                supabase.table("utenti").update({"nota": nota_input, "nota_timestamp": ora_iso}).eq("id", loggato["id"]).execute()
                 st.success("Nota aggiornata!")
                 st.rerun()
         with c_n2:
@@ -77,82 +77,6 @@ with st.expander(titolo_pannello, expanded=loggato is not None):
             col_a, col_b = st.columns([3, 1])
             with col_a: st.audio(url)
             with col_b:
-                if st.button(f"Elimina", key=f"del_{i}"):
-                    nuova_lista_audio.pop(i)
-                    st.session_state.utente_loggato["audio_url"] = nuova_lista_audio
-                    st.rerun()
-        lista_audio_corrente = nuova_lista_audio
-        st.write("---")
+                if st
 
-    audio_files = st.file_uploader("Aggiungi nuovi audio (MP3)", type=["mp3"], accept_multiple_files=True)
 
-    col_btn1, col_btn2 = st.columns(2)
-    with col_btn1:
-        if st.button("Salva modifiche" if loggato else "Crea Profilo"):
-            if not nome_input or not pass_input:
-                st.warning("Nome e Password obbligatori!")
-            else:
-                final_audio_list = lista_audio_corrente.copy()
-                if audio_files:
-                    for f in audio_files:
-                        nome_f = f"{int(time.time())}_{f.name.replace(' ', '_')}"
-                        try:
-                            supabase.storage.from_("audio").upload(nome_f, f.read(), {"content_type": "audio/mpeg"})
-                            url_pub = str(supabase.storage.from_("audio").get_public_url(nome_f))
-                            final_audio_list.append(url_pub)
-                        except: pass
-                
-                payload = {"nome": nome_input, "password": pass_input, "ruolo": ruolo_input, "contatto": contatto_input, "audio_url": final_audio_list}
-                if loggato:
-                    supabase.table("utenti").update(payload).eq("id", loggato["id"]).execute()
-                    st.success("Profilo aggiornato!")
-                else:
-                    supabase.table("utenti").insert(payload).execute()
-                    st.success("Profilo creato!")
-                st.session_state.utente_loggato = None
-                st.cache_data.clear()
-                st.rerun()
-    with col_btn2:
-        if loggato and st.button("Esci"):
-            st.session_state.utente_loggato = None
-            st.rerun()
-
-# --- 3. SEZIONE ESPLORA ---
-st.divider()
-with st.expander("🔎 Cerca collaboratori", expanded=False):
-    @st.cache_data(ttl=5)
-    def get_utenti():
-        try: return supabase.table("utenti").select("nome, ruolo, contatto, audio_url, nota, nota_timestamp").execute()
-        except: return None
-
-    res = get_utenti()
-    if res and res.data:
-        c1, c2 = st.columns(2)
-        with c1: r_nome = st.text_input("Cerca nome", key="search_n")
-        with c2: f_ruolo = st.selectbox("Filtra ruolo", ["tutti", "produttore", "cantante", "spettatore"], key="search_r")
-        st.write("---")
-        for u in res.data:
-            if r_nome and r_nome.lower() not in u["nome"].lower(): continue
-            if f_ruolo != "tutti" and u["ruolo"] != f_ruolo: continue
-            
-            st.markdown(f"### 👤 {u['nome']}")
-            n_testo, n_time = u.get("nota"), u.get("nota_timestamp")
-            if n_testo and n_time:
-                try:
-                    if (datetime.datetime.now(datetime.timezone.utc) - datetime.datetime.fromisoformat(n_time.replace('Z', '+00:00'))).total_seconds() < 86400:
-                        st.info(f"🗨️ {n_testo}")
-                except: pass
-            
-            st.caption(f"{u['ruolo'].upper()} | Contatto: {u.get('contatto', 'N/A')}")
-            for link in u.get("audio_url", []):
-                if isinstance(link, str) and link.startswith("http"): st.audio(link)
-            st.divider()
-    else: st.info("Nessun utente registrato.")
-
-# --- 4. FEEDBACK ---
-st.subheader("💬 Feedback")
-f_text = st.text_area("", key="f_area")
-if st.button("Invia"):
-    if f_text:
-        supabase.table("feedback").insert({"messaggio": f_text, "nome": nome_input if 'nome_input' in locals() else "Anonimo"}).execute()
-        st.success("Grazie!")
