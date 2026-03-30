@@ -116,9 +116,7 @@ with st.expander(titolo_pannello, expanded=loggato is not None):
                 if loggato:
                     supabase.table("utenti").update(payload).eq("id", loggato["id"]).execute()
                     st.success("Profilo aggiornato!")
-                else:
-                    supabase.table("utenti").insert(payload).execute()
-                    st.success("Profilo creato!")
+             
                 
                 st.session_state.utente_loggato = None
                 st.cache_data.clear()
