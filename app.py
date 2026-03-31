@@ -96,7 +96,7 @@ for u in utenti:
             if gia_messo:
                 st.button(f"❤️ {n_likes} (Hai già votato)", key=f"lk_{url}", disabled=True)
             else:
-                if st.button(f"🤍 {n_likes} Metti Like", key=f"lk_{url}"):
+                if st.button(f"🤍 {n_likes}", key=f"lk_{url}"):
                     supabase.table("likes").insert({"utente_che_vota": loggato['nome'], "audio_url": url}).execute()
                     st.rerun()
         st.divider()
