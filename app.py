@@ -83,23 +83,48 @@ for u in utenti:
                 st.info(f"🗨️ {u['nota']}")
         
         st.caption(f"Ruolo: {u['ruolo']} | Contatto: {u['contatto']}")
-        
+                # --- SEZIONE AUDIO E LIKE (CON RIMOZIONE) ---
         for url in u.get('audio_url', []):
             st.audio(url)
-            # CONTEGGIO LIKE UNIVOCI
-            likes_per_questo_audio = [lk for lk in tutti_i_likes if lk['audio_url'] == url]
-            n_likes = len(likes_per_questo_audio)
             
-            # Controllo se IO ho già messo like
-            gia_messo = any(lk['utente_che_vota'] == loggato['nome'] for lk in likes_per_questo_audio)
+            # 1. Recuperiamo i like per questo specifico audio
+            likes_audio = [lk for lk in tutti_i_likes if lk.get('audio_url') == url]
+            n_likes = len(likes_audio)
             
-            if gia_messo:
-                st.button(f"❤️ {n_likes} (Hai già votato)", key=f"lk_{url}", disabled=True)
-            else:
-                if st.button(f"🤍 {n_likes}", key=f"lk_{url}"):
-                    supabase.table("likes").insert({"utente_che_vota": loggato['nome'], "audio_url": url}).execute()
-                    st.rerun()
-        st.divider()
+            # 2. Controlliamo se l'utente loggato ha già messo like
+            gia_votato = any(lk.get('utente_che_vota') == loggato['nome'] for lk in likes_audio)
+            
+            col_l, col_r = st.columns([1, 3])
+            with col_l:
+                if gia_votato:
+                    # Se ha già votato, mostriamo il cuore pieno. Cliccando lo TOGLIE.
+                    if st.button(f"❤️ {n_likes}", key=f"unlk_{url}"):
+                        try:
+                            # Rimuoviamo la riga dalla tabella likes
+                            supabase.table("likes")\
+                                .delete()\
+                                .eq("utente_che_vota", loggato['nome'])\
+                                .eq("audio_url", url)\
+                                .execute()
+                            
+                            st.cache_data.clear()
+                            st.rerun()
+                        except Exception as e:
+                            st.error(f"Errore nella rimozione: {e}")
+                else:
+                    # Se non ha votato, mostriamo il cuore vuoto. Cliccando lo AGGIUNGE.
+                    if st.button(f"🤍 {n_likes}", key=f"lk_{url}"):
+                        try:
+                            supabase.table("likes").insert({
+                                "utente_che_vota": loggato['nome'], 
+                                "audio_url": url
+                            }).execute()
+                            
+                            st.cache_data.clear()
+                            st.rerun()
+                        except Exception as e:
+                            st.error(f"Errore nell'inserimento: {e}")
+
 
 # --- SEZIONE FEEDBACK ---
 st.header("💬 Feedback")
