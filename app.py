@@ -23,7 +23,7 @@ if st.session_state.utente_loggato is None:
         n_log = st.text_input("Nome")
         p_log = st.text_input("Password", type="password")
         if st.button("Entra"):
-            res = supabase.table("utenti").select("*").eq("Nome", n_log).eq("password", p_log).execute()
+            res = supabase.table("utenti").select("*").eq("nome", n_log).eq("password", p_log).execute()
             if res.data:
                 st.session_state.utente_loggato = res.data[0]
                 st.rerun()
