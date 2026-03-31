@@ -136,7 +136,7 @@ with c_filter:
 
 for u in utenti:
     # Filtri di visualizzazione
-    if u['nome'] == loggato['nome']: continue
+   
     if search_query and search_query.lower() not in u['nome'].lower(): continue
     if filter_role != "Tutti" and u['ruolo'] != filter_role: continue
     
