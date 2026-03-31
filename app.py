@@ -14,7 +14,7 @@ st.set_page_config(page_title="Beginner Collab", layout="centered")
 if "utente_loggato" not in st.session_state:
     st.session_state.utente_loggato = None
 
-# --- 1. SCHERMATA DI ACCESSO (LOGIN/REGISTRAZIONE) ---
+# --- 1. SCHERMATA DI ACCESSO ---
 if st.session_state.utente_loggato is None:
     st.title("🎸 Beginner Collab")
     tab1, tab2 = st.tabs(["Accedi", "Registrati"])
@@ -44,7 +44,7 @@ if st.session_state.utente_loggato is None:
                 st.warning("Nome e Password obbligatori!")
     st.stop()
 
-# --- AREA RISERVATA (Solo per utenti loggati) ---
+# --- AREA RISERVATA ---
 loggato = st.session_state.utente_loggato
 st.sidebar.title(f"Ciao {loggato['nome']}")
 if st.sidebar.button("Esci (Logout)"):
@@ -53,22 +53,27 @@ if st.sidebar.button("Esci (Logout)"):
 
 st.title("🎸 Beginner Collab")
 
-# --- 2. GESTIONE PROFILO E AUDIO ---
-with st.expander("⚙️ Gestisci il tuo Profilo e i tuoi Audio"):
-    st.subheader("Aggiorna i tuoi dati")
+# --- 2. GESTIONE PROFILO COMPLETA ---
+with st.expander("⚙️ Gestisci il tuo Account (Nome, Pass, Note, Audio)"):
+    st.subheader("Modifica i tuoi dati")
     
-    # Gestione Nota Personale
+    # Campi di modifica
+    nuovo_nome = st.text_input("Cambia Nome", value=loggato['nome'])
+    nuova_pass = st.text_input("Cambia Password", value=loggato['password'], type="password")
+    nuovo_contatto = st.text_input("Cambia Contatto (IG/Telegram)", value=loggato.get('contatto', ''))
+    
     nota_att = loggato.get("nota", "")
-    nuova_nota = st.text_input("La tua nota del giorno (24h):", value=nota_att if nota_att else "", max_chars=60)
+    nuova_nota = st.text_input("La tua nota del giorno (max 60 car.)", value=nota_att if nota_att else "", max_chars=60)
     
-    # Caricamento Nuovi Audio
+    # Gestione Audio
     st.write("---")
-    st.subheader("Carica nuovi MP3")
-    audio_files = st.file_uploader("Seleziona file audio", type=["mp3"], accept_multiple_files=True)
+    st.subheader("Gestione Audio")
+    audio_files = st.file_uploader("Carica nuovi MP3", type=["mp3"], accept_multiple_files=True)
     
-    if st.button("Salva tutte le modifiche"):
+    if st.button("Salva tutte le modifiche del profilo"):
         final_audio = loggato.get("audio_url", [])
-        # Upload file su Storage
+        
+        # Caricamento nuovi file se presenti
         if audio_files:
             for f in audio_files:
                 nome_f = f"{int(time.time())}_{f.name.replace(' ', '_')}"
@@ -76,44 +81,52 @@ with st.expander("⚙️ Gestisci il tuo Profilo e i tuoi Audio"):
                 url_pub = str(supabase.storage.from_("audio").get_public_url(nome_f))
                 final_audio.append(url_pub)
         
-        # Update Database
+        # Preparazione Payload
         ora = datetime.datetime.now(datetime.timezone.utc).isoformat()
-        payload = {"audio_url": final_audio, "nota": nuova_nota, "nota_timestamp": ora}
+        payload = {
+            "nome": nuovo_nome,
+            "password": nuova_pass,
+            "contatto": nuovo_contatto,
+            "nota": nuova_nota,
+            "nota_timestamp": ora,
+            "audio_url": final_audio
+        }
+        
+        # Update DB
         supabase.table("utenti").update(payload).eq("id", loggato["id"]).execute()
         
-        # Aggiorna session state locale
-        st.session_state.utente_loggato["nota"] = nuova_nota
-        st.session_state.utente_loggato["audio_url"] = final_audio
+        # Aggiornamento sessione locale per riflettere i cambi subito
+        st.session_state.utente_loggato.update(payload)
         
-        st.success("Profilo salvato!")
+        st.success("Account aggiornato con successo!")
         time.sleep(1); st.rerun()
             
-    # Visualizzazione/Eliminazione Audio
+    # Visualizzazione ed eliminazione audio esistenti
     st.write("---")
-    st.subheader("I tuoi audio caricati:")
+    st.subheader("I tuoi brani:")
     miei_audio = loggato.get("audio_url", [])
     if miei_audio:
         for i, url in enumerate(miei_audio):
-            c1, c2 = st.columns([3, 1])
-            with c1: st.audio(url)
-            with c2:
+            col_a, col_b = st.columns([3, 1])
+            with col_a: st.audio(url)
+            with col_b:
                 if st.button("Elimina", key=f"del_{i}"):
                     miei_audio.pop(i)
                     supabase.table("utenti").update({"audio_url": miei_audio}).eq("id", loggato["id"]).execute()
                     st.session_state.utente_loggato["audio_url"] = miei_audio
                     st.rerun()
     else:
-        st.caption("Non hai ancora caricato audio.")
+        st.caption("Nessun audio caricato.")
 
-# --- 3. SEZIONE FEEDBACK ---
+# --- 3. FEEDBACK ---
 st.header("💬 Feedback")
-f_msg = st.text_area("Cosa ne pensi del sito?", key="f_area")
-if st.button("Invia Feedback"):
+f_msg = st.text_area("Suggerimenti per il sito?", key="f_area")
+if st.button("Invia"):
     if f_msg:
         supabase.table("feedback").insert({"messaggio": f_msg, "nome": loggato['nome']}).execute()
-        st.success("Feedback inviato!")
+        st.success("Grazie!")
 
-# --- 4. SEZIONE ESPLORA (Note visibili, Ricerca e Filtri) ---
+# --- 4. ESPLORA (Con Note visibili) ---
 st.divider()
 st.header("🔎 Esplora Collaboratori")
 
@@ -127,41 +140,36 @@ def get_data():
 
 utenti, tutti_i_likes = get_data()
 
-# Filtri
-c_search, c_filter = st.columns(2)
-with c_search:
-    search_query = st.text_input("Cerca nome...", key="search_bar")
-with c_filter:
-    filter_role = st.selectbox("Filtra ruolo", ["Tutti", "produttore", "cantante", "spettatore"])
+search_query = st.text_input("Cerca per nome...", key="search_bar")
+filter_role = st.selectbox("Filtra per ruolo", ["Tutti", "produttore", "cantante", "spettatore"])
 
 for u in utenti:
-    # Filtri di visualizzazione
-   
+  
     if search_query and search_query.lower() not in u['nome'].lower(): continue
     if filter_role != "Tutti" and u['ruolo'] != filter_role: continue
     
     with st.container():
         st.subheader(f"👤 {u['nome']} ({u['ruolo']})")
         
-        # NOTA DEGLI ALTRI UTENTI (Visibile qui)
+        # Visualizzazione Nota degli altri utenti
         n_testo = u.get("nota")
         n_time = u.get("nota_timestamp")
         if n_testo and n_time:
             try:
                 t_nota = datetime.datetime.fromisoformat(n_time.replace('Z', '+00:00'))
+                # Mostra solo se scritta nelle ultime 24 ore
                 if (datetime.datetime.now(datetime.timezone.utc) - t_nota).total_seconds() < 86400:
                     st.info(f"🗨️ {n_testo}")
             except: pass
         
         st.write(f"🔗 Contatto: **{u.get('contatto', 'N/A')}**")
         
-        # Audio e Like
         audio_list = u.get('audio_url', [])
         if audio_list:
             for url in audio_list:
                 st.audio(url)
                 
-                # Logica Like/Unlike
+                # Sistema Like
                 likes_audio = [lk for lk in tutti_i_likes if lk.get('audio_url') == url]
                 n_likes = len(likes_audio)
                 gia_votato = any(lk.get('utente_che_vota') == loggato['nome'] for lk in likes_audio)
