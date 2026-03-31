@@ -135,7 +135,7 @@ else:
                         st.info(f"🗨️ {n_testo}")
                 except: pass
             
-            st.write(f"🔗 Contatto: **{u.get('contatto', 'N/A')}**")
+            st.write(f"🔗 Contatto: {u.get('contatto', 'N/A')}")
             
             urls = u.get('audio_url') if u.get('audio_url') else []
             for url in urls:
