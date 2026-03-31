@@ -162,7 +162,7 @@ for u in utenti:
                     st.info(f"🗨️ {n_testo}")
             except: pass
         
-        st.write(f"🔗 Contatto: **{u.get('contatto', 'N/A')}**")
+        st.write(f"🔗 Contatto:{u.get('contatto', 'N/A')}")
         
         audio_list = u.get('audio_url', [])
         if audio_list:
