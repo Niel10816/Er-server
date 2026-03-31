@@ -20,7 +20,7 @@ if st.session_state.utente_loggato is None:
     tab1, tab2 = st.tabs(["Accedi", "Registrati"])
     
     with tab1:
-        n_log = st.text_input("Nome d'arte")
+        n_log = st.text_input("nome")
         p_log = st.text_input("Password", type="password")
         if st.button("Entra"):
             res = supabase.table("utenti").select("*").eq("nome", n_log).eq("password", p_log).execute()
@@ -30,7 +30,7 @@ if st.session_state.utente_loggato is None:
             else: st.error("Dati errati")
             
     with tab2:
-        n_reg = st.text_input("Scegli Nome d'arte")
+        n_reg = st.text_input("Scegli nome")
         p_reg = st.text_input("Scegli Password", type="password")
         c_reg = st.text_input("Contatto (IG/Telegram)")
         r_reg = st.selectbox("Ruolo", ["produttore", "cantante", "spettatore"])
